@@ -1,0 +1,136 @@
+[
+    {   
+        "id": "building",
+        "name": "Batiment",
+        "moveAble": {
+            "climbing": false,
+            "foot": false,
+            "fly": true,
+            "swiming": false
+        },
+        "moveCost": 1 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": true
+    },
+
+    {
+        "id": "dirt",
+        "name": "Terre",
+        "moveAble": {
+            "climbing": false,
+            "foot": true,
+            "fly": true,
+            "swiming": false
+        },
+        "moveCost": 1 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": false
+    },
+
+    {
+        "id": "forest",
+        "name": "Forêt",
+        "moveAble": {
+            "climbing": false,
+            "foot": true,
+            "fly": true,
+            "swiming": false
+        },
+        "moveCost": 2 ,
+        "bonusDef": 1 ,
+        "bonusDodge": 20 ,
+        "obstructView": false
+    },
+
+    {   
+        "id": "grass",
+        "name": "Herbe",
+        "moveAble": {
+            "climbing": false,
+            "foot": true,
+            "fly": true,
+            "swiming": false
+        },
+        "moveCost": 1 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": false
+    },
+
+    {
+        "id": "outdoorWall",
+        "name": "Mur",
+        "moveAble": {
+            "climbing": false,
+            "foot": false,
+            "fly": true,
+            "swiming": false
+        },
+        "moveCost": 1 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": true
+    },
+
+    {   
+        "id": "planks",
+        "name": "planches",
+        "moveAble": {
+            "climbing": false,
+            "foot": true,
+            "fly": true,
+            "swiming": false
+        },
+        "moveCost": 1 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": false
+    },
+
+    {   
+        "id": "water",
+        "name": "Eau",
+        "moveAble": {
+            "climbing": false,
+            "foot": false,
+            "fly": true,
+            "swiming": true
+        },
+        "moveCost": 1 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": false
+    },
+
+    {
+        "id": "--",
+        "name": "--",
+        "moveAble": {
+            "climbing": false,
+            "foot": false,
+            "fly": true,
+            "swiming": false
+        },
+        "moveCost": 1 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": false
+    },
+
+    {
+        "id": "error",
+        "name": "Error",
+        "moveAble": {
+            "climbing": false,
+            "foot": false,
+            "fly": false,
+            "swiming": false
+        },
+        "moveCost": 0 ,
+        "bonusDef": 0 ,
+        "bonusDodge": 0 ,
+        "obstructView": true
+    }
+]

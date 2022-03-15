@@ -1,0 +1,21 @@
+{
+    "gridWidth": 23,
+    "gridHeight": 15,
+    "layout": [
+        "water", "outdoorWall", "building", "building", "building", "dirt", "dirt", "dirt", "grass", "forest", "dirt", "dirt", "dirt", "grass", "grass", "grass", "forest", "dirt", "dirt", "forest", "forest", "forest", "forest",
+        "water", "outdoorWall", "building", "building", "building", "dirt", "dirt", "dirt", "forest", "grass", "dirt", "dirt", "grass", "forest", "dirt", "forest", "grass", "forest", "forest", "dirt", "building", "building", "building",
+        "water", "outdoorWall", "dirt", "dirt", "dirt", "grass", "grass", "dirt", "dirt", "dirt", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "dirt", "building", "building", "building",
+        "water", "outdoorWall", "forest", "building", "building", "building", "forest", "dirt", "dirt", "dirt", "outdoorWall", "building", "building", "building", "dirt", "grass", "grass", "grass", "outdoorWall", "dirt", "dirt", "dirt", "forest",
+        "water", "outdoorWall", "grass", "building", "building", "building", "dirt", "building", "building", "building", "outdoorWall", "building", "building", "building", "dirt", "dirt", "dirt", "dirt", "outdoorWall", "dirt", "outdoorWall", "outdoorWall", "outdoorWall",
+        "water", "outdoorWall", "grass", "dirt", "dirt", "dirt", "dirt", "building", "building", "building", "outdoorWall", "dirt", "dirt", "dirt", "building", "building", "building", "building", "building", "dirt", "building", "building", "building",
+        "water", "outdoorWall", "--", "planks", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "outdoorWall", "forest", "grass", "dirt", "building", "building", "building", "building", "building", "dirt", "building", "building", "building",
+        "water", "water", "--", "planks", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "grass", "forest", "grass", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt",
+        "water", "water", "planks", "planks", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "grass", "grass", "grass", "building", "building", "building", "building", "building", "dirt", "dirt", "dirt", "dirt",
+        "water", "water", "--", "dirt", "dirt", "dirt", "grass", "grass", "grass", "outdoorWall", "dirt", "dirt", "dirt", "building", "building", "building", "building", "building", "dirt", "dirt", "dirt", "dirt", "dirt",
+        "water", "outdoorWall", "--", "planks", "dirt", "dirt", "dirt", "forest", "forest", "grass", "outdoorWall", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt",
+        "water", "outdoorWall", "dirt", "dirt", "grass", "forest", "grass", "building", "building", "building", "outdoorWall", "forest", "grass", "outdoorWall", "dirt", "dirt", "building", "building", "building", "dirt", "building", "building", "building",
+        "water", "outdoorWall", "dirt", "dirt", "building", "building", "building", "building", "building", "building", "outdoorWall", "grass", "grass", "outdoorWall", "dirt", "dirt", "building", "building", "building", "dirt", "building", "building", "building",
+        "water", "outdoorWall", "dirt", "dirt", "building", "building", "building", "dirt", "dirt", "dirt", "dirt", "dirt", "grass", "outdoorWall", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt",
+        "water", "outdoorWall", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "grass", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall", "outdoorWall"
+    ]
+}

@@ -1,20 +1,23 @@
 <template>
     <div id="summonerGame">
-        <canvas id="mapLayer" width="640" height="448"></canvas>
+        <canvas id="mapLayer" width="1104" height="720"></canvas>
     </div>
 </template>
 
 <script>
+import * as SummonerGameScript from "@/assets/game/main.js";
+
 export default {
-    name: "SummonerGame"
+    name: "SummonerGame",
+    mounted() {
+        SummonerGameScript.launchGame();
+    }
 }
 </script>
 
 <style>
 
 #summonerGame {
-    width: 640px;
-    height: 448px;
     margin: auto;
 }
 
@@ -25,5 +28,4 @@ export default {
     z-index: 0;
     background-color: beige;
 }
-
 </style>
