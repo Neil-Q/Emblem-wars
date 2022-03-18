@@ -4,8 +4,8 @@
         "name": "Batiment",
         "moveAble": {
             "climbing": false,
-            "foot": false,
             "fly": true,
+            "foot": false,
             "swiming": false
         },
         "moveCost": 1 ,
@@ -19,8 +19,8 @@
         "name": "Terre",
         "moveAble": {
             "climbing": false,
-            "foot": true,
             "fly": true,
+            "foot": true,
             "swiming": false
         },
         "moveCost": 1 ,
@@ -34,8 +34,8 @@
         "name": "Forêt",
         "moveAble": {
             "climbing": false,
-            "foot": true,
             "fly": true,
+            "foot": true,
             "swiming": false
         },
         "moveCost": 2 ,
@@ -49,8 +49,8 @@
         "name": "Herbe",
         "moveAble": {
             "climbing": false,
-            "foot": true,
             "fly": true,
+            "foot": true,
             "swiming": false
         },
         "moveCost": 1 ,
@@ -64,8 +64,8 @@
         "name": "Mur",
         "moveAble": {
             "climbing": false,
-            "foot": false,
             "fly": true,
+            "foot": false,
             "swiming": false
         },
         "moveCost": 1 ,
@@ -76,11 +76,11 @@
 
     {   
         "id": "planks",
-        "name": "planches",
+        "name": "Planches",
         "moveAble": {
             "climbing": false,
-            "foot": true,
             "fly": true,
+            "foot": true,
             "swiming": false
         },
         "moveCost": 1 ,
@@ -94,8 +94,8 @@
         "name": "Eau",
         "moveAble": {
             "climbing": false,
-            "foot": false,
             "fly": true,
+            "foot": false,
             "swiming": true
         },
         "moveCost": 1 ,
@@ -109,8 +109,8 @@
         "name": "--",
         "moveAble": {
             "climbing": false,
-            "foot": false,
             "fly": true,
+            "foot": false,
             "swiming": false
         },
         "moveCost": 1 ,
@@ -124,8 +124,8 @@
         "name": "Error",
         "moveAble": {
             "climbing": false,
-            "foot": false,
             "fly": false,
+            "foot": false,
             "swiming": false
         },
         "moveCost": 0 ,
