@@ -9,7 +9,7 @@ import * as SummonerGame from "@/assets/game/main.js";
 export default {
     name: "SummonerGame",
     mounted() {
-        SummonerGame.launchGame("summonerGame");
+        SummonerGame.runGame("summonerGame");
         //let mapCanvas = document.getElementById('mapLayer');
 
         /*mapCanvas.addEventListener("mousemove", event => {

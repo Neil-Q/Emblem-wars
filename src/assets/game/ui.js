@@ -1,4 +1,4 @@
-class Ui {
+class UiManager {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
@@ -23,27 +23,27 @@ class Ui {
     drawTileInfos(tileDatas, mouseX) {
         
         let xOrigin = mouseX < (this.canvas.width / 2) ? (this.canvas.width - 200) : 8;
-        let yOrigin = this.canvas.height - 200
+        let yOrigin = this.canvas.height - 200;
         
         // Dessine le fond du cadre
-        this.ctx.fillStyle = "rgba(255, 230, 230, 0.8)"
+        this.ctx.fillStyle = "rgba(255, 230, 230, 0.8)";
         this.ctx.fillRect(xOrigin, yOrigin, 192, 192);
 
         // Dessine le nom du type de case
-        this.ctx.fillStyle = "rgb(0, 0, 230)"
+        this.ctx.fillStyle = "rgb(0, 0, 230)";
         this.ctx.fillRect(xOrigin + 4 , yOrigin + 4 , 184, 80);
 
         this.ctx.fillStyle = "rgba(255, 230, 230, 0.8)"
         this.ctx.font = "36px arial";
-        this.ctx.textAlign = "center"
+        this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
         this.ctx.fillText(tileDatas.name, xOrigin + 96, yOrigin + 44);
 
         //Dessine les informations
 
-        this.ctx.fillStyle = this.ctx.fillStyle = "rgb(0, 0, 230)"
+        this.ctx.fillStyle = "rgb(0, 0, 230)";
         this.ctx.font = "24px arial";
-        this.ctx.textAlign = "left"
+        this.ctx.textAlign = "left";
         this.ctx.textBaseline = "baseline";
         this.ctx.fillText("DEF : " + tileDatas.bonusDef, xOrigin + 20, yOrigin + 115);
         this.ctx.fillText("ESQ : " + tileDatas.bonusDodge, xOrigin + 20, yOrigin + 165);
@@ -52,4 +52,4 @@ class Ui {
     }
 }
 
-export {Ui}
+export {UiManager}

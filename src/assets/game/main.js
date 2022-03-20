@@ -1,5 +1,6 @@
 import * as Map from "./maps/map.js";
 import * as Ui from "./ui.js";
+import * as Unit from "./units.js"
 
 let gameLocation = undefined;
 
@@ -9,13 +10,21 @@ let uiCanvas = undefined;
 
 let map = undefined;
 let ui = undefined;
+let teams = [{"color": "rgb(0, 0, 255)"}, {"color": "rgb(255, 0, 0)"}]
+let unitsManager = undefined;
 
 let zoom = 3;
 
-let mouseX = undefined;
-let mouseY = undefined;
-let gridX = undefined;
-let gridY = undefined;
+let pointer = {
+    mouseX : undefined,
+    mouseY : undefined,
+
+    mapX : undefined,
+    mapY : undefined,
+
+    relativeMapX : undefined,
+    relativeMapY : undefined
+}
 
 function createCanvas(id, zIndex) {
     let newCanvas = document.createElement("canvas");
@@ -36,7 +45,7 @@ function createCanvas(id, zIndex) {
     return newCanvas;
 }
 
-function launchGame(locationId) {
+function initGame(locationId) {
 
     gameLocation = document.getElementById(locationId);
 
@@ -44,10 +53,6 @@ function launchGame(locationId) {
     unitsCanvas = createCanvas("summonerGameUnitsLayer", 2);
     uiCanvas = createCanvas("summonerGameUiCanvas", 3);
 
-    unitsCanvas.style.backgroundColor = "rgba(0,0,0,0)";
-    uiCanvas.style.backgroundColor = "rgba(0,0,0,0)";
-
-    console.log("canvas height = " + mapCanvas.height);
     map = new Map.Map(mapCanvas);
 
     map.loadMap("map_01");
@@ -56,27 +61,67 @@ function launchGame(locationId) {
         map.drawMap(zoom, 0, 0);
     }
 
-    ui = new Ui.Ui(uiCanvas);
+    ui = new Ui.UiManager(uiCanvas);
+    unitsManager = new Unit.UnitsManager(unitsCanvas, teams);
+}
+
+function runGame(locationId) {
+
+    initGame(locationId);
+
+    unitsManager.addUnit(1, 15, 11, 20, 15, 5, 110, 20, 10, 5, 100, 8);
+    unitsManager.addUnit(1, 16, 8, 20, 15, 5, 110, 20, 10, 5, 100, 8);
+    unitsManager.addUnit(2, 22, 10, 30, 22, 7, 130, 40, 20, 10, 67, 8);
+
+    unitsManager.drawUnits(zoom);
+
 
     gameLocation.addEventListener("mousemove", event => {
 
-        event.offsetX > 0 ? mouseX = event.offsetX : mouseX = 1;
-        event.offsetY > 0 ? mouseY = event.offsetY : mouseY = 1;
+        let pointerUpdate = updatePointer(event);
 
-        let currentGridX = Math.ceil(mouseX / (16 * zoom));
-        let currentGridY = Math.ceil(mouseY / (16 * zoom));
-
-        if (currentGridX != gridX || currentGridY != gridY) {
-            gridX = currentGridX;
-            gridY = currentGridY;
-
-            let tileDatas = map.getTileDatas(gridX, gridY);
+        if (pointerUpdate) {
+           
+            let tileDatas = map.getTileDatas(pointer.mapX, pointer.mapY);
 
             ui.clearCanvas();
-            ui.drawCursor(gridX, gridY, zoom);
-            ui.drawTileInfos(tileDatas, mouseX);
+            ui.drawCursor(pointer.mapX, pointer.mapY, zoom);
+            ui.drawTileInfos(tileDatas, pointer.mouseX);
         }
+    });
+
+    gameLocation.addEventListener("click", function() {
+        let clickedUnitId = unitsManager.findUnitFromPosition(pointer.mapX, pointer.mapY);
+        
+        if (clickedUnitId) {
+            clickedUnitId == unitsManager.selectedUnit ?
+            unitsManager.unselectPreviousUnit() : unitsManager.selectUnit(clickedUnitId);            
+        }
+        else if (unitsManager.selectedUnit){ 
+            unitsManager.moveSelectedUnit(pointer.mapX, pointer.mapY);
+            unitsManager.unselectPreviousUnit();
+        }
+
+        unitsManager.drawUnits(zoom);
     });
 }
 
-export {launchGame};
+function updatePointer(event) {
+        event.offsetX > 0 ? pointer.mouseX = event.offsetX : pointer.mouseX = 1;
+        event.offsetY > 0 ? pointer.mouseY = event.offsetY : pointer.mouseY = 1;
+
+        let currentGridX = Math.ceil(pointer.mouseX / (16 * zoom));
+        let currentGridY = Math.ceil(pointer.mouseY / (16 * zoom));
+
+        if (currentGridX != pointer.gridX || currentGridY != pointer.gridY) {
+            pointer.mapX = currentGridX;
+            pointer.mapY = currentGridY;
+
+            return true
+        }
+        else {
+            return false
+        }
+}
+
+export {runGame};

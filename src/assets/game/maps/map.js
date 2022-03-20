@@ -76,7 +76,7 @@ class Tile {
         this.bonusDef = properties.bonusDef;
         this.bonusDodge = properties.bonusDodge;
         this.obstructView = properties.obstructView;
-        this.actor = null;
+        this.unit = null;
     }
 }
 
