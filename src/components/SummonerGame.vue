@@ -4,52 +4,24 @@
 </template>
 
 <script>
-import * as SummonerGame from "@/assets/game/main.js";
+import * as SummonerGame from "@/assets/Summoner_Game/game.js";
 
 export default {
     name: "SummonerGame",
     mounted() {
-        SummonerGame.runGame("summonerGame");
-        //let mapCanvas = document.getElementById('mapLayer');
+        let gameLocation = document.getElementById("summonerGame");
 
-        /*mapCanvas.addEventListener("mousemove", event => {
-            //mouseX = event.x;
-            //mouseY = event.y;
-
-            //console.log("x: " + mouseX + " / y: " + mouseY);
-            console.log("x: " + event.offsetX + " / y: " + event.offsetY);
-            //console.log(event);
-        });*/
+        let summonerGame = new SummonerGame.Game();    
+        summonerGame.launch(gameLocation);
     }
 }
 </script>
 
 <style>
-
 #summonerGame {
     margin: auto;
     position: relative;
     width: 1104px;
     height: 720px;
 }
-
-/*#mapLayer {  
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    background-color: beige;
-}
-
-#unitsLayer {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    background-color: rgba(0, 0, 0, 0.1);
-}*/
 </style>

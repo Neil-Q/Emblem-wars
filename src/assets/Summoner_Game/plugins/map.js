@@ -1,16 +1,18 @@
 class Map {
-    constructor(canvas) {
-        this.image = undefined;
-        this.tileSize = 16;
+    constructor(game) {
+        this.game = game;
+
+        this.image = new Image();
+        this.layout = undefined;
+
         this.gridWidth = undefined;
         this.gridHeight = undefined;
-        this.layout = undefined;
-        this.canvas = canvas;
-        this.ctx = this.canvas.getContext('2d');
+
+        this.visible = false;
     }
 
     buildLayout(layout) {
-        let tilesetsLibrary = require("./mapTilesets.json");
+        let tilesetsLibrary = require("../maps/mapTilesets.json");
         let buildedLayout = [];
         let errors = 0;
 
@@ -37,34 +39,40 @@ class Map {
             console.log("Map succesfully builded");
         }
 
-        return buildedLayout;
+        this.layout = buildedLayout;
     }
 
-    clearCanvas() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    checkIfMoveAble(mapX = this.game.pointer.mapX, mapY = this.game.pointer.mapY) {
+        let tileDatas = this.getTileDatas(mapX, mapY);
+
+        return tileDatas.moveAble.foot;
     }
 
-    drawMap(zoom, offsetX, offsetY) {
-        this.clearCanvas();
-        this.ctx.drawImage(this.image, offsetX * 16 * zoom, offsetY * 16 * zoom, this.image.width * zoom, this.image.height * zoom);
+    render(ctx, zoom) {
+        if (this.visible) {
+            ctx.drawImage(this.image, 0, 0, this.image.width * zoom, this.image.height * zoom);
+        }
     }
 
-    getTileDatas(column, row) {
-        let tileID = column + ((row - 1 )* this.gridWidth);
+    getTileDatas(mapX = this.game.pointer.mapX, mapY = this.game.pointer.mapY) {
+        let tileID = mapX + ((mapY - 1 ) * this.gridWidth);
         let tileDatas = this.layout[tileID - 1];
 
         return tileDatas;
     }
 
     loadMap(mapName) {
-        let mapData = require("./library/" + mapName + "_data.json");
-        let mapImage = require("./library/" + mapName + "_image.png");
 
-        this.image = new Image();
-        this.image.src = mapImage;
-        this.gridWidth = mapData.gridWidth;
-        this.gridHeight = mapData.gridHeight;
-        this.layout = this.buildLayout(mapData.layout);
+        let mapData = require("../maps/" + mapName + "_data.json");
+            this.buildLayout(mapData.layout);
+            this.gridWidth = mapData.gridWidth;
+            this.gridHeight = mapData.gridHeight;
+
+        this.image.src = require("../maps/" + mapName + "_image.png");
+    }
+
+    show() {
+        this.visible = true;
     }
 }
 
@@ -80,4 +88,4 @@ class Tile {
     }
 }
 
-export {Map};
+export {Map}
