@@ -6,6 +6,9 @@ class Base_unit {
         this.posX = posX;
         this.posY = posY;
 
+        this.moveType = "foot";
+        this.moveDistance = 7;
+
         this.states = [
             "map_neutral",
             "map_selected"

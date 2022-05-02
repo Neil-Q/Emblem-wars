@@ -1,3 +1,5 @@
+import { Pathfinder } from "./pathfinder.js"
+
 class Map {
     constructor(game) {
         this.game = game;
@@ -8,7 +10,8 @@ class Map {
         this.gridWidth = undefined;
         this.gridHeight = undefined;
 
-        this.visible = false;
+        this.visible = false
+        this.pathfinder = new Pathfinder(this);
     }
 
     buildLayout(layout) {
@@ -42,23 +45,41 @@ class Map {
         this.layout = buildedLayout;
     }
 
-    checkIfMoveAble(mapX = this.game.pointer.mapX, mapY = this.game.pointer.mapY) {
+    checkIfMoveAble(mapX = this.game.pointer.mapX, mapY = this.game.pointer.mapY, moveType = "foot") {
         let tileDatas = this.getTileDatas(mapX, mapY);
-
-        return tileDatas.moveAble.foot;
+        let moveAble = this.checkMoveType(tileDatas.moveAble, moveType);
+        return moveAble;
     }
 
-    render(ctx, zoom) {
-        if (this.visible) {
-            ctx.drawImage(this.image, 0, 0, this.image.width * zoom, this.image.height * zoom);
+    checkMoveType(tileMoves, moveType) {
+        let moveAble = false;
+
+        switch (moveType) {
+            case "foot" :
+                moveAble = tileMoves.foot;
+                break;
         }
+
+        return moveAble;
     }
 
     getTileDatas(mapX = this.game.pointer.mapX, mapY = this.game.pointer.mapY) {
         let tileID = mapX + ((mapY - 1 ) * this.gridWidth);
-        let tileDatas = this.layout[tileID - 1];
+        let tile = this.layout[tileID - 1];
+        
+        if(tile){
+            let tileDatas = {
+                name : tile.name,
+                moveAble : tile.moveAble,
+                moveCost : tile.moveCost,
+                bonusDef : tile.bonusDef,
+                bonusDodge : tile.bonusDodge,
+                obstructView : tile.obstructView
+            }
+    
+            return tileDatas;
+        }
 
-        return tileDatas;
     }
 
     loadMap(mapName) {
@@ -71,7 +92,11 @@ class Map {
         this.image.src = require("../maps/" + mapName + "_image.png");
     }
 
-    show() {
+    render(ctx, zoom) {
+        if (this.visible) ctx.drawImage(this.image, 0, 0, this.image.width * zoom, this.image.height * zoom);
+    }
+
+    showMap() {
         this.visible = true;
     }
 }

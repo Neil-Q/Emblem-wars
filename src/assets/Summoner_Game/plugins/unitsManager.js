@@ -29,6 +29,53 @@ class Units_manager {
         return unit ? unit : null;
     }
 
+    getNearbyUnits(unitId = this.selectedUnit.id, radius) {
+        let mainUnit = this.findUnitFromId(unitId);
+
+        let closeUnits = [];
+        
+        this.unitsList.forEach(function(unit) {
+            if (unit.posX < mainUnit.posX - radius) return
+            if (unit.posX > mainUnit.posX + radius) return
+            if (unit.posY < mainUnit.posX - radius) return
+            if (unit.posY < mainUnit.posX + radius) return
+
+            let unitDatas = {
+                id   : unit.id,
+                posX : unit.posX,
+                posY : unit.posY,
+                team : unit.team
+            }
+            closeUnits.push(unitDatas);
+        });
+
+        return closeUnits;
+    }
+
+    getSelectedUnitDatas() {
+        let datas = this.getUnitDatas(this.selectedUnit.id);
+        return datas;
+    }
+
+    getSelectedUnitId() {
+        return this.selectedUnit.id;
+    }
+
+    getUnitDatas(unitId) {
+        let unit = this.findUnitFromId(unitId);
+
+        let datas = {
+            id :            unit.id,
+            team :          unit.team,
+            posX :          unit.posX,
+            posY :          unit.posY,
+            moveType :      unit.moveType ,
+            moveDistance :  unit.moveDistance
+        }
+
+        return datas;
+    }
+
     moveUnitTo(posX, posY, id = undefined) {
         let unit = undefined;
         id ? unit = this.findUnitFromId(id) : unit = this.selectedUnit;

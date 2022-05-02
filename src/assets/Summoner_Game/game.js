@@ -56,8 +56,7 @@ class Game {
         this.map = new Map(this);
 
         this.map.image.onload = () => {
-            console.log(this);
-            this.map.show();
+            this.map.showMap();
         }
 
         //this.map.image.onload = this.renderer.render();
@@ -75,6 +74,8 @@ class Game {
     }
 
     setState(state) {
+        this.currentState.quit()
+
         switch(state) {
             case "Map" : {
                 this.currentState = this.states[0];
@@ -90,15 +91,13 @@ class Game {
                 console.log("Game state not found");
             }
         }
+
+        this.currentState.enter();
     }
 }
 
 /**
- * GAME STATES
- */
-
-/**
- * MAP STATE
+ * GAME STATES ------------------------------------------------------------------
  */
 
 class Game_state_map {
@@ -116,6 +115,10 @@ class Game_state_map {
         }
     }
 
+    enter() {
+
+    }
+
     fire(event) {
         switch (event) {
             case "click" :                
@@ -123,15 +126,16 @@ class Game_state_map {
                 break;    
         }
     }
-}
 
-/**
- *  UNIT SELECTED STATE
- */
+    quit() {
+
+    }
+}
 
 class Game_state_unitSelected {
     constructor(game) {
         this.game = game;
+        this.selectedUnitDatas = null;
     }
 
     clicked() {
@@ -144,16 +148,9 @@ class Game_state_unitSelected {
 
             this.game.setState("Map");
         }
-
-        // Sinon on verifie qu'on à cliqué sur une case sur laquelle une unité peut se déplacer
-        else if (!this.game.map.checkIfMoveAble()) {
-            console.log("Unit can't move on this terrain");
-        }
-
-        // On verifie que la case n'est pas déjà occupée
-        else if (this.game.units_manager.findUnitFromPosition(mapX, mapY)) {
-            console.log("Unit can't move here because tile is already occupied");
-        }
+   
+        // Si on clic sur une case sur laquelle l'unité peut bouger alors on l'y déplace
+        if (!this.game.map.pathfinder.checkIfCanMoveHere(mapX, mapY)) return console.log("Unit can not move here");
 
         // L'unité peut donc bouger à l'emplacement séléctionné alors on la déplace on retourne sur la map
         else {
@@ -164,12 +161,23 @@ class Game_state_unitSelected {
         }
     }
 
+    enter() {
+        this.selectedUnitDatas = this.game.units_manager.getSelectedUnitDatas();
+        this.game.map.pathfinder.setNewPathMap(this.selectedUnitDatas.id);
+        this.game.renderer.showLayer("pathfinder");
+    }
+
     fire(event) {
         switch (event) {
             case "click" :                
                 this.clicked()
                 break;    
         }
+    }
+
+    quit() {
+        this.game.map.pathfinder.resetPathMap();
+        this.game.renderer.hideLayer("pathfinder");
     }
 }
 
