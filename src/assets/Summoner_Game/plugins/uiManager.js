@@ -1,5 +1,6 @@
 import { Map_cursor }           from "../entities/ui/map_cursor.js"
 import { Tile_infos_panel }     from "../entities/ui/tile_infos_panel.js"
+import { Turn_indicator }       from "../entities/ui/turn_indicator.js"
 
 class Ui_manager {
     constructor(game) {
@@ -7,7 +8,8 @@ class Ui_manager {
 
         this.items = {
             map_cursor : new Map_cursor(),
-            tile_infos_panel : new Tile_infos_panel()
+            tile_infos_panel : new Tile_infos_panel(),
+            turn_indicator : new Turn_indicator()
         };
 
         this.states = [
@@ -29,14 +31,29 @@ class Ui_manager {
 
     renderTileInfosPanel(ctx, zoom) {
         let tileDatas = this.game.map.getTileDatas();
-        
-        if(tileDatas) {
-            let mouseX = this.game.pointer.mouseX;
-            let canvasWidth = this.game.canvas.width;
-            let canvasHeight = this.game.canvas.height;
-            
-            this.items.tile_infos_panel.render(ctx, zoom, tileDatas, mouseX, canvasWidth, canvasHeight);
-        }
+
+        if(!tileDatas) return
+
+        let mouseX = this.game.pointer.mouseX;
+        let canvasWidth = this.game.canvas.width;
+        let canvasHeight = this.game.canvas.height;
+        let color = this.game.teams_manager.getTeamColor(this.game.turns_manager.getTeamTurn());
+              
+        this.items.tile_infos_panel.render(ctx, zoom, tileDatas, mouseX, canvasWidth, canvasHeight, color);
+    }
+
+    renderTurnIndicator(ctx, zoom) {
+        let teamTurn = this.game.turns_manager.getTeamTurn();
+        let teamName = this.game.teams_manager.getTeamName(teamTurn);
+        let teamColor = this.game.teams_manager.getTeamColor(teamTurn);
+
+        let mouseX = this.game.pointer.mouseX;
+        let mouseY = this.game.pointer.mouseY;
+
+        let canvasWidth = this.game.canvas.width;
+        let canvasHeight = this.game.canvas.height;
+
+        this.items.turn_indicator.render(ctx, zoom, teamName, teamColor, mouseX, mouseY, canvasWidth, canvasHeight);
     }
 
 }
@@ -57,6 +74,7 @@ class Ui_state_map {
     render(ctx, zoom) {
         this.manager.renderMapCursor(ctx, zoom);
         this.manager.renderTileInfosPanel(ctx, zoom);
+        this.manager.renderTurnIndicator(ctx, zoom);
     }
 }
 

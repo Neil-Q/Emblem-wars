@@ -11,6 +11,14 @@ class Inputs_manager {
         this.game.canvas.addEventListener("click", () => {
             this.game.fire("click");
         });
+
+        document.addEventListener("keydown", key => {
+            switch (key.key) {
+                case " " :
+                    this.game.fire("space");
+                    break
+            }
+        })
     }
 }
 

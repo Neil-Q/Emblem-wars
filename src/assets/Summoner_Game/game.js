@@ -3,6 +3,7 @@ import { Map }              from "./plugins/map.js";
 import { Pointer }          from "./plugins/pointer.js";
 import { Renderer }         from "./plugins/renderer.js";
 import { Teams_manager }    from "./plugins/teamsManager.js";
+import { Turns_manager }    from "./plugins/turnsManager.js";
 import { Ui_manager }       from "./plugins/uiManager.js";
 import { Units_manager }    from "./plugins/unitsManager.js";
 
@@ -17,6 +18,7 @@ class Game {
         this.teams_manager = new Teams_manager();
         this.ui_manager = new Ui_manager(this);
         this.units_manager = new Units_manager(this);
+        this.turns_manager = new Turns_manager(this);
         this.map = undefined;
 
         this.states = [
@@ -62,15 +64,33 @@ class Game {
         //this.map.image.onload = this.renderer.render();
         this.map.loadMap("map_01");
 
-        this.units_manager.addUnit(0, 15, 11);
-        this.units_manager.addUnit(0, 16, 8);
-        this.units_manager.addUnit(1, 22, 10);
-        
+        this.units_manager.addUnit(0, 15, 11, 100);
+        this.units_manager.addUnit(0, 16, 8, 50);
+        this.units_manager.addUnit(0, 13, 8, 70);
+        this.units_manager.addUnit(1, 22, 10, 100);
+        this.units_manager.addUnit(1, 22, 8, 50);
+        this.units_manager.addUnit(1, 20, 5, 60);
+
         let inputsManager = new Inputs_manager(this);
         inputsManager.listen();
 
         console.log(this);
         this.renderer.render();
+
+        let TestEvent = {
+            name : "TestEvent 1",
+            timeout : 100,
+            fire : function() {
+                console.log(this.name);
+            }
+        }
+
+        this.turns_manager.addEventToline(TestEvent);
+        this.turns_manager.nextTurn();
+    }
+
+    nextTurn() {
+        this.turns_manager.nextTurn();
     }
 
     setState(state) {
@@ -123,7 +143,10 @@ class Game_state_map {
         switch (event) {
             case "click" :                
                 this.clicked()
-                break;    
+                break;
+            case "space" :
+                this.game.nextTurn();
+                break;
         }
     }
 
@@ -149,13 +172,20 @@ class Game_state_unitSelected {
             this.game.setState("Map");
         }
    
+        // On vérifie que c'est à son équipe de jouer
+        if (this.game.turns_manager.getTeamTurn() != this.selectedUnitDatas.team) return console.log("You can't play ennemy units");
+
+        // On verifie que l'unité est prête à faire une action
+        if (!this.game.turns_manager.isReady(this.selectedUnitDatas.id)) return console.log("this unit is not ready to play yet");
+
         // Si on clic sur une case sur laquelle l'unité peut bouger alors on l'y déplace
         if (!this.game.map.pathfinder.checkIfCanMoveHere(mapX, mapY)) return console.log("Unit can not move here");
 
         // L'unité peut donc bouger à l'emplacement séléctionné alors on la déplace on retourne sur la map
         else {
             this.game.units_manager.moveUnitTo(mapX, mapY);
-            this.game.units_manager.unselectUnit()
+            this.game.turns_manager.returnToWaitingline(this.selectedUnitDatas.id);
+            this.game.units_manager.unselectUnit();
 
             this.game.setState("Map");
         }

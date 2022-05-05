@@ -1,8 +1,10 @@
 import { Base_unit } from "../entities/units/baseUnit.js";
+//import { Units_factory } from "./unitsFactory.js";
 
 class Units_manager {
     constructor(game) {
         this.game = game;
+//        this.unit_factory = new Units_factory(game);
 
         this.unitsList = [];
         this.unitsCreated = 0;
@@ -10,12 +12,20 @@ class Units_manager {
         this.selectedUnit = null;
     }
 
-    addUnit(team, posX, posY) {
-        let newUnit = new Base_unit(this.unitsCreated + 1 , team, posX, posY);
+    addUnit(team, posX, posY, speed) {
+        let newUnit = new Base_unit(this.unitsCreated + 1 , team, posX, posY, speed);
         this.unitsCreated ++;
 
         this.unitsList.push(newUnit);
+        this.game.turns_manager.addUnitToLine(newUnit.id, newUnit.team, newUnit.speed);
+        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard", "blue");
+        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard", "red");
     }
+
+    /*createUnit(type, level, team, posX, posY) {
+
+
+    }*/
 
     findUnitFromPosition(mapX, mapY) {
         let unit = this.unitsList.find((element => element.posX == mapX && element.posY == mapY));
@@ -29,12 +39,40 @@ class Units_manager {
         return unit ? unit : null;
     }
 
+    getAllUnitsSpeed() {
+        let list = [];
+
+        this.unitsList.forEach(unit => {
+            list.push({id : unit.id, speed : unit.speed});
+        });
+
+        return list;
+    }
+
+    getAllUnitsTypeAndPosition() {
+        let list = [];
+
+        this.unitsList.forEach( unit => {
+            let unitDatas = {
+                id : unit.id,
+                type : "guard",
+                team : unit.team,
+                posX : unit.posX,
+                posY : unit.posY
+            }
+
+            list.push(unitDatas);
+        })
+
+        return list;
+    }
+
     getNearbyUnits(unitId = this.selectedUnit.id, radius) {
         let mainUnit = this.findUnitFromId(unitId);
 
         let closeUnits = [];
         
-        this.unitsList.forEach(function(unit) {
+        this.unitsList.forEach(unit => {
             if (unit.posX < mainUnit.posX - radius) return
             if (unit.posX > mainUnit.posX + radius) return
             if (unit.posY < mainUnit.posX - radius) return
@@ -82,22 +120,13 @@ class Units_manager {
 
         unit.moveTo(posX, posY);
     }
-
-    renderUnits(ctx, zoom) {
-        this.unitsList.forEach(unit => {
-            let color = this.game.teams_manager.getColor(unit.team);
-            unit.render(ctx, zoom, color);
-        });
-    }
-
+    
     selectUnit(id) {
         let unit = this.unitsList.find(element => element.id == id);
         this.selectedUnit = unit;
-        unit.setState("selected");
     }
 
     unselectUnit() {
-        this.selectedUnit.setState("neutral");
         this.selectedUnit = null;
     }
 }

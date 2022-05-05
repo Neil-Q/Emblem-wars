@@ -68,7 +68,7 @@ class Pathfinder {
         for (let i = 0; i < moveDistance; i++) {
             let newFrontier = [];
 
-            frontier.forEach(function(frontierTile) {
+            frontier.forEach( frontierTile => {
                 let neighbours = [
                     {x : frontierTile.x     , y : frontierTile.y - 1},    // northern neighbour - 0
                     {x : frontierTile.x - 1 , y : frontierTile.y    },    // western neighbour  - 1
@@ -78,7 +78,7 @@ class Pathfinder {
 
                 let checkedCount = 0;
 
-                neighbours.forEach(function(neighbour) {
+                neighbours.forEach( neighbour => {
                     // On s'assure d'être dans les limites de la carte
                     if (neighbour.x < 1 || neighbour.y < 1 || neighbour.x > map.gridWidth || neighbour.y > map.gridHeight) {
                         checkedCount ++;
@@ -145,7 +145,7 @@ class Pathfinder {
 
         if(!moveableTiles) return;
 
-        moveableTiles.forEach(function(tile) {
+        moveableTiles.forEach( tile => {
             if(!tile[2]) return // Si la case est à porté mais qu'on ne peut pas s'y arrêter alors on ne l'affiche pas
 
             let tileX = tile[0];
