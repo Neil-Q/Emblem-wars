@@ -3,7 +3,7 @@ class Turns_manager {
         this.game = game;
         this.teams_manager = game.teams_manager;
 
-        this.teamTurn = 1;
+        this.teamTurn = 0;
 
         this.waitingLine = {
             units : [],
@@ -11,6 +11,8 @@ class Turns_manager {
         }
         this.lounge = [];
         this.readyUnits = [];
+
+        this.printTurnsInformations = false;
     }
 
     advanceTime(time) {
@@ -93,13 +95,14 @@ class Turns_manager {
 
         // S'il n'y a que les unité d'un seul joueur en train d'attendre alors on verifie qu'il s'agit de la prochaine équipe dans l'ordre par defaut pour faire passer le temps jusqu'à son tour
         // Sinon on ne fait pas passer de temps et on fait jouer l'équipe suivante
-        if (!this.waitingLine.units.find(unit => unit.team != readyUnits[0].team && unit.timeout >= 1)) {
+        if (!this.waitingLine.units.find(unit => unit.timeout >= 1 && unit.team != this.teamTurn)) {
             
             let teamTurn = this.getTeamTurn() + 1;
             if (teamTurn > this.teams_manager.teams.length - 1) teamTurn = 0;
             this.setTeamTurn(teamTurn);
             console.log("No time elapsed");
             console.log("Team turn : " + this.teams_manager.teams[this.teamTurn].name);
+            this.printAllUnitsStates()
 
             return
         }
@@ -167,6 +170,10 @@ class Turns_manager {
         return this.teamTurn;
     }
 
+    getTeamTurnName() {
+        return this.teams_manager.getTeamName(this.teamTurn);
+    }
+
     getTimeBeforeNextAction() {
         let nextTimeout = false;
 
@@ -179,7 +186,6 @@ class Turns_manager {
         return nextTimeout;
     }
 
-
     isReady(unitId) {
         let isUnitReady = this.readyUnits.find(unit => unit == unitId);
         if (isUnitReady) return true;
@@ -187,6 +193,8 @@ class Turns_manager {
     }
 
     printAllUnitsStates() {
+        if(!this.printTurnsInformations) return
+
         this.printReadyUnits();
         this.printUnitsInLounge();
         this.printWaitingUnit();

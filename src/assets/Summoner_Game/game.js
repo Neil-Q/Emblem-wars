@@ -127,22 +127,27 @@ class Game_state_map {
 
     clicked() {
         let unitId = this.game.units_manager.findUnitFromPosition(this.game.pointer.mapX, this.game.pointer.mapY);
-
+        
         if (unitId) {
-            this.game.units_manager.selectUnit(unitId);
-            this.game.setState("Unit_Selected");
-            return
+                this.game.units_manager.selectUnit(unitId);
+                this.game.setState("Unit_Selected");
+                return
         }
     }
 
     enter() {
-
     }
 
     fire(event) {
         switch (event) {
             case "click" :                
-                this.clicked()
+                this.clicked();
+                break;
+            case "mousedown" :                
+                this.mouseDown();
+                break;
+            case "mouseup" :                
+                this.MouseUp();
                 break;
             case "space" :
                 this.game.nextTurn();
@@ -150,8 +155,15 @@ class Game_state_map {
         }
     }
 
-    quit() {
+    mouseDown() {
 
+    }
+
+    MouseUp() {
+
+    }
+
+    quit() {
     }
 }
 
@@ -162,24 +174,35 @@ class Game_state_unitSelected {
     }
 
     clicked() {
+
+        // Si on reclic sur l'unité, ouvrir son menu
+
         let mapX = this.game.pointer.mapX;
         let mapY = this.game.pointer.mapY;
 
         // Si on reclic sur l'unité selectionnée alors on la déselectionne et on retourne sur la map
-        if (mapX == this.game.units_manager.selectedUnit.posX && mapY == this.game.units_manager.selectedUnit.posY) {
+        /*if (mapX == this.game.units_manager.selectedUnit.posX && mapY == this.game.units_manager.selectedUnit.posY) {
             this.game.units_manager.unselectUnit()
 
             this.game.setState("Map");
-        }
+        }*/
    
-        // On vérifie que c'est à son équipe de jouer
-        if (this.game.turns_manager.getTeamTurn() != this.selectedUnitDatas.team) return console.log("You can't play ennemy units");
+        // Si on clic à coté et qu'il s'agit d'une unité qui ne peut jouer alors on revient en arrière
+        if (this.game.turns_manager.getTeamTurn() != this.selectedUnitDatas.team || !this.game.turns_manager.isReady(this.selectedUnitDatas.id)) {
+            this.game.units_manager.unselectUnit()
+            this.game.setState("Map");
+            this.game.fire("click");
 
-        // On verifie que l'unité est prête à faire une action
-        if (!this.game.turns_manager.isReady(this.selectedUnitDatas.id)) return console.log("this unit is not ready to play yet");
+            return
+        }
 
         // Si on clic sur une case sur laquelle l'unité peut bouger alors on l'y déplace
-        if (!this.game.map.pathfinder.checkIfCanMoveHere(mapX, mapY)) return console.log("Unit can not move here");
+        if (!this.game.map.pathfinder.checkIfCanMoveHere(mapX, mapY)) {
+            return console.log("Unit can not move here");
+
+        }
+        
+        
 
         // L'unité peut donc bouger à l'emplacement séléctionné alors on la déplace on retourne sur la map
         else {
@@ -200,9 +223,17 @@ class Game_state_unitSelected {
     fire(event) {
         switch (event) {
             case "click" :                
-                this.clicked()
-                break;    
+                this.clicked();
+                break;  
+            case "escape" :
+                this.pressEscape() ;
+                break;
         }
+    }
+
+    pressEscape() {
+        this.game.units_manager.unselectUnit()
+        this.game.setState("Map");
     }
 
     quit() {

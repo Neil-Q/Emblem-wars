@@ -12,11 +12,22 @@ class Inputs_manager {
             this.game.fire("click");
         });
 
+        this.game.canvas.addEventListener("mousedown", () => {
+            this.game.fire("mousedown");
+        });
+
+        this.game.canvas.addEventListener("mouseup", () => {
+            this.game.fire("mouseup");
+        });
+
         document.addEventListener("keydown", key => {
             switch (key.key) {
                 case " " :
                     this.game.fire("space");
-                    break
+                    break;
+                case "Escape" :
+                    this.game.fire("escape");
+                    break;
             }
         })
     }

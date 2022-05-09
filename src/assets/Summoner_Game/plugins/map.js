@@ -11,7 +11,7 @@ class Map {
         this.gridHeight = undefined;
 
         this.visible = false
-        this.pathfinder = new Pathfinder(this);
+        this.pathfinder = new Pathfinder(game, this);
     }
 
     buildLayout(layout) {
@@ -55,8 +55,20 @@ class Map {
         let moveAble = false;
 
         switch (moveType) {
+            case "climbing" :
+                moveAble = tileMoves.climbing;
+                break
+
+            case "fly" :
+                moveAble = tileMoves.fly;
+                break;
+            
             case "foot" :
                 moveAble = tileMoves.foot;
+                break;
+
+            case "swiming" :
+                moveAble = tileMoves.swiming;
                 break;
         }
 
@@ -79,7 +91,20 @@ class Map {
     
             return tileDatas;
         }
+        return null
+    }
 
+    getMapCoordinatesFromIndex(index) {
+        let x = index % this.gridWidth + 1;
+        let y = Math.ceil(index / this.gridWidth);
+
+        return {x : x, y : y};
+    }
+
+    getMapIndexFromCoordinates(mapX, mapY) {
+        let index = ((mapY - 1) * this.gridWidth) + mapX - 1;
+
+        return index;
     }
 
     loadMap(mapName) {

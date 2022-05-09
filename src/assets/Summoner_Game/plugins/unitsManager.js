@@ -22,11 +22,6 @@ class Units_manager {
         this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard", "red");
     }
 
-    /*createUnit(type, level, team, posX, posY) {
-
-
-    }*/
-
     findUnitFromPosition(mapX, mapY) {
         let unit = this.unitsList.find((element => element.posX == mapX && element.posY == mapY));
 
