@@ -12,7 +12,7 @@ class Sprites_renderer {
         }
     }
 
-    composeSpriteColor(sprite, color = 120) {
+    /*composeSpriteColor(sprite, color = 120) {
         console.log(this.compositorCanvas);
         //this.compositorCanvas.height = 16;
         //this.compositorCanvas.width = 16;
@@ -65,59 +65,71 @@ class Sprites_renderer {
         spriteImage.src = this.compositorCanvas.toDataURL();
         console.log(spriteImage);
         return spriteImage;
-    }
+    }*/
 
     renderUnit(unit) {
-        let color = this.game.teams_manager.getTeamName(unit.team);
-        let sprite = this.spritesSheets[unit.type + "_map_" + color];
+        let color = this.game.teams_manager.getTeamColorCode(unit.team);
+        let sprite = this.spritesSheets[unit.codeName + "_map_" + color];
         if (!sprite || sprite == "loading") return;
 
-        let xOrigin = (unit.posX - 1) * 16 * this.zoom;
-        let yOrigin = (unit.posY - 1) * 16 * this.zoom;
+        let xOrigin = (unit.posX - 1) * 16 * this.zoom - 4 * this.zoom;
+        let yOrigin = (unit.posY - 1) * 16 * this.zoom - 8 * this.zoom;
 
-        this.ctx.drawImage(sprite, 0, 0, 16, 16, xOrigin, yOrigin, 16 * this.zoom, 16 * this.zoom);
+        this.ctx.drawImage(sprite, 0, 0, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
 
-        let mask = this.spritesSheets[unit.type + "_map_mask"];
+        let mask = this.spritesSheets[unit.codeName + "_map_mask"];
         
         if (this.game.turns_manager.getTeamTurn() != unit.team) {
-            this.ctx.globalAlpha = 0.45;
-            this.ctx.drawImage(mask, 0, 16, 16, 16, xOrigin, yOrigin, 16 * this.zoom, 16 * this.zoom);
+
+            if (!this.game.turns_manager.isReady(unit.id)) {
+                this.ctx.globalAlpha = 0.8;
+                this.ctx.drawImage(mask, 0, 24, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
+
+                this.ctx.globalAlpha = 1;
+                return
+            }
+
+            this.ctx.globalAlpha = 0.4;
+            this.ctx.drawImage(mask, 0, 24, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
+
+            this.ctx.globalAlpha = 1;
+            return
         }
 
         if (!this.game.turns_manager.isReady(unit.id)) {
-            this.ctx.globalAlpha = 0.35;
-            this.ctx.drawImage(mask, 0, 0, 16, 16, xOrigin, yOrigin, 16 * this.zoom, 16 * this.zoom);
-        }
+            this.ctx.globalAlpha = 0.4;
+            this.ctx.drawImage(mask, 0, 0, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
 
-        this.ctx.globalAlpha = 1;
+            this.ctx.globalAlpha = 1;
+        }
     }
 
-    loadMapSpriteSheet(name, color) {
+    loadMapSpriteSheet(codeName, color) {
         let spritesSheets = this.spritesSheets;
 
-        if (!spritesSheets[name + "_map_mask"]) {
-            spritesSheets[name + "_map_mask"] = "loading";
+        if (!spritesSheets[codeName + "_map_mask"]) {
+            spritesSheets[codeName + "_map_mask"] = "loading";
 
             let newMaskSheet = new Image();
             newMaskSheet.onload = () => {
-                spritesSheets[name + "_map_mask"] = newMaskSheet;
+                spritesSheets[codeName + "_map_mask"] = newMaskSheet;
             }
-            newMaskSheet.src = require("../entities/units/sprites/" + name + "_map_mask.png");
+            newMaskSheet.src = require("../entities/units/sprites/" + codeName + "_map_mask.png");
         }
 
-        if (!spritesSheets[name + "_map_" + color]) {
-            spritesSheets[name + "_map_" + color] = "loading";
+        if (!spritesSheets[codeName + "_map_" + color]) {
+            spritesSheets[codeName + "_map_" + color] = "loading";
 
             let newSheet = new Image();
             newSheet.onload = () => {
-                spritesSheets[name + "_map_" + color] = newSheet;
+                spritesSheets[codeName + "_map_" + color] = newSheet;
             }
-            newSheet.src = require("../entities/units/sprites/" + name + "_map_" + color + ".png");
+            newSheet.src = require("../entities/units/sprites/" + codeName + "_map_" + color + ".png");
         }
         
     }
 
-    loadSpriteSheet(name) {
+    loadFightingSpriteSheet(name) {
         if (this.spritesSheets[name]) return console.log(this.spritesSheets[name]);
         
         this.spritesSheets[name] = "loading";

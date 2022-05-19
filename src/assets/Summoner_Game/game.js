@@ -61,15 +61,25 @@ class Game {
             this.map.showMap();
         }
 
-        //this.map.image.onload = this.renderer.render();
         this.map.loadMap("map_01");
 
+        /*
         this.units_manager.addUnit(0, 15, 11, 100);
         this.units_manager.addUnit(0, 16, 8, 50);
         this.units_manager.addUnit(0, 13, 8, 70);
         this.units_manager.addUnit(1, 22, 10, 100);
         this.units_manager.addUnit(1, 22, 8, 50);
         this.units_manager.addUnit(1, 20, 5, 60);
+        */
+
+        this.units_manager.createUnit(0, "guard", 1, 1, 1, 15, 11);
+        this.units_manager.createUnit(0, "guard", 2, 1, 1, 16, 8);
+        this.units_manager.createUnit(0, "warrior", 1, 1, 1, 13, 8);
+        this.units_manager.createUnit(0, "warrior", 2, 1, 1, 22, 10);
+        this.units_manager.createUnit(1, "swordsman", 1, 1, 1, 22, 8);
+        this.units_manager.createUnit(1, "swordsman", 2, 1, 1, 20, 5);
+        this.units_manager.createUnit(1, "soldier", 1, 1, 1, 7, 9);
+        this.units_manager.createUnit(1, "soldier", 2, 1, 1, 7, 6);
 
         let inputsManager = new Inputs_manager(this);
         inputsManager.listen();
@@ -79,7 +89,7 @@ class Game {
 
         let TestEvent = {
             name : "TestEvent 1",
-            timeout : 100,
+            timeout : 200,
             fire : function() {
                 console.log(this.name);
             }

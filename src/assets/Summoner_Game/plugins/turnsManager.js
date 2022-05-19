@@ -59,6 +59,65 @@ class Turns_manager {
         return fastestUnit.team;
     }
 
+    addEventToline(event) {
+        this.waitingLine.events.push(event);
+        this.sortWaitingLine("events");
+    }
+
+    addUnitToLine(id, team, actionTime) {
+        let unit = {
+            id : id,
+            team : team,
+            actionTime: actionTime,
+            timeout : actionTime
+        }
+        this.waitingLine.units.push(unit);
+        this.sortWaitingLine("units");
+    }
+
+    calculateFastestUnit(unitsList) {
+
+
+
+        // Parmis les unités prètes on prends la ou les plus rapides si plusieurs ont la même vitesse
+        
+        unitsList.sort(function(a, b) {return a.actionTime - b.actionTime;})
+        console.log(unitsList);
+        let fastestUnits = unitsList.filter(unit => unit.actionTime == unitsList[0].actionTime);
+        let winner = fastestUnits[0].id;
+
+        // S'il y en a plusieurs on en choisie une au hasard
+        if (fastestUnits.length > 1) winner = fastestUnits[Math.floor(Math.random() * fastestUnits.length)].id;
+
+        return winner
+    }
+
+    getTeamTurn() {
+        return this.teamTurn;
+    }
+
+    getTeamTurnName() {
+        return this.teams_manager.getTeamName(this.teamTurn);
+    }
+
+    getTimeBeforeNextAction() {
+        let nextTimeout = false;
+
+        let nextUnit = this.waitingLine.units.find(unit => unit.timeout >= 1);
+        let nextEvent = this.waitingLine.events.find(event => event.timeout >= 1);
+
+        if (nextUnit) nextTimeout = nextUnit.timeout;
+        if (nextEvent && nextEvent.timeout <= nextTimeout) nextTimeout = nextEvent.timeout;
+
+        return nextTimeout;
+    }
+
+    isReady(unitId) {
+        let isUnitReady = this.readyUnits.find(unit => unit == unitId);
+        if (isUnitReady) return true;
+        return false;
+    }
+
     nextTurn() {
         // On commencent par vérifier si des unités ne sont pas déjà prètes mais sans avoir encore eu le droit de jouer
         console.log(" ");
@@ -116,7 +175,7 @@ class Turns_manager {
         }
         
         // Si des unités sont prêtes on décide du prochain tour
-        if (readyUnits) {
+        if (readyUnits.length >= 1) {
             readyUnits.forEach(unit => this.readyUnits.push(unit.id));
 
             // S'il n'y a qu'une unité de prète alors on donne le tour à son équipe
@@ -135,61 +194,6 @@ class Turns_manager {
         this.advanceTime(nextTimeout)
         console.log("Team turn : " + this.teams_manager.teams[this.teamTurn].name);
         this.printAllUnitsStates();
-    }
-
-    addEventToline(event) {
-        this.waitingLine.events.push(event);
-        this.sortWaitingLine("events");
-    }
-
-    addUnitToLine(id, team, speed) {
-        let unit = {
-            id : id,
-            team : team,
-            speed: speed,
-            timeout : speed
-        }
-        this.waitingLine.units.push(unit);
-        this.sortWaitingLine("units");
-    }
-
-    calculateFastestUnit(unitsList) {
-
-        // Parmis les unités prètes on prends la ou les plus rapides si plusieurs ont la même vitesse
-        unitsList.sort(function(a, b) {return a.speed - b.speed;})
-        let fastestUnits = unitsList.filter(unit => unit.speed == unitsList[0].speed);
-        let winner = fastestUnits[0].id;
-
-        // S'il y en a plusieurs on en choisie une au hasard
-        if (fastestUnits.length > 1) winner = fastestUnits[Math.floor(Math.random() * fastestUnits.length)].id;
-
-        return winner
-    }
-
-    getTeamTurn() {
-        return this.teamTurn;
-    }
-
-    getTeamTurnName() {
-        return this.teams_manager.getTeamName(this.teamTurn);
-    }
-
-    getTimeBeforeNextAction() {
-        let nextTimeout = false;
-
-        let nextUnit = this.waitingLine.units.find(unit => unit.timeout >= 1);
-        let nextEvent = this.waitingLine.events.find(event => event.timeout >= 1);
-
-        if (nextUnit) nextTimeout = nextUnit.timeout;
-        if (nextEvent && nextEvent.timeout <= nextTimeout) nextTimeout = nextEvent.timeout;
-
-        return nextTimeout;
-    }
-
-    isReady(unitId) {
-        let isUnitReady = this.readyUnits.find(unit => unit == unitId);
-        if (isUnitReady) return true;
-        return false;
     }
 
     printAllUnitsStates() {
@@ -236,14 +240,14 @@ class Turns_manager {
 
     resetUnitTimeout(unitId) {
         let unitToReset = this.waitingLine.units.find(unit => unit.id == unitId);
-        unitToReset.timeout = unitToReset.speed;
+        unitToReset.timeout = unitToReset.actionTime;
 
         this.sortWaitingLine("units");
     }
 
     returnToWaitingline(unitId) {
         let unitToMove = this.waitingLine.units.find(unit => unit.id == unitId);
-        unitToMove.timeout = unitToMove.speed;
+        unitToMove.timeout = unitToMove.actionTime;
         this.sortWaitingLine("units");
         this.readyUnits = this.readyUnits.filter(unit => unit != unitId);
         

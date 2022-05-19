@@ -1,10 +1,10 @@
 import { Base_unit } from "../entities/units/baseUnit.js";
-//import { Units_factory } from "./unitsFactory.js";
+import { Units_factory } from "./unitsFactory.js";
 
 class Units_manager {
     constructor(game) {
         this.game = game;
-//        this.unit_factory = new Units_factory(game);
+        this.units_factory = new Units_factory(game);
 
         this.unitsList = [];
         this.unitsCreated = 0;
@@ -18,8 +18,23 @@ class Units_manager {
 
         this.unitsList.push(newUnit);
         this.game.turns_manager.addUnitToLine(newUnit.id, newUnit.team, newUnit.speed);
-        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard", "blue");
-        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard", "red");
+        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard_1", "blue");
+        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard_1", "red");
+    }
+
+    createUnit(team, archetype, rank, level, weaponId, posX, posY) {
+
+        let unitId = this.unitsCreated + 1;
+        this.unitsCreated ++;
+
+        let newUnit = this.units_factory.buildNewUnit(unitId, team, archetype, rank, level, weaponId);
+        newUnit.moveTo(posX, posY);
+
+        this.unitsList.push(newUnit);
+        this.game.turns_manager.addUnitToLine(newUnit.id, newUnit.team, newUnit.actionTime);
+        this.game.renderer.sprites_renderer.loadMapSpriteSheet(newUnit.codeName, this.game.teams_manager.getTeamColorCode(newUnit.team));
+
+        console.log(newUnit);
     }
 
     findUnitFromPosition(mapX, mapY) {
@@ -50,7 +65,7 @@ class Units_manager {
         this.unitsList.forEach( unit => {
             let unitDatas = {
                 id : unit.id,
-                type : "guard",
+                codeName : unit.codeName,
                 team : unit.team,
                 posX : unit.posX,
                 posY : unit.posY
@@ -126,4 +141,4 @@ class Units_manager {
     }
 }
 
-export {Units_manager}
+export { Units_manager }
