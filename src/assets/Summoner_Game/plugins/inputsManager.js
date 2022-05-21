@@ -4,20 +4,31 @@ class Inputs_manager {
     }
 
     listen() {
-        this.game.canvas.addEventListener("mousemove", event => {
+        let canvas = this.game.canvas;
+
+        canvas.addEventListener("mousemove", event => {
             this.game.pointer.update(event);
         });
 
-        this.game.canvas.addEventListener("click", () => {
-            this.game.fire("click");
+        canvas.addEventListener("click", event => {
+            let datas = {
+                x : event.offsetX,
+                y : event.offsetY
+            }
+            this.game.fire("click", datas);
         });
 
-        this.game.canvas.addEventListener("mousedown", () => {
+        canvas.addEventListener("mousedown", () => {
             this.game.fire("mousedown");
         });
 
-        this.game.canvas.addEventListener("mouseup", () => {
-            this.game.fire("mouseup");
+        canvas.addEventListener("mouseup", () => {
+            this.game.fire("mouseUp");
+        });
+
+        canvas.addEventListener("contextmenu", e => {
+            e.preventDefault();
+            this.game.fire("rightClick");
         });
 
         document.addEventListener("keydown", key => {

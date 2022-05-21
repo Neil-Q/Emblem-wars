@@ -38,7 +38,6 @@ class Renderer {
         this.clearCanvas();
 
         this.game.map.render(this.ctx, this.zoom);
-        this.game.map.pathfinder.renderTrackedEnemiesReach(this.ctx, this.zoom);
         if(this.extraLayers.pathfinder) this.game.map.pathfinder.renderCurrentPathMap(this.ctx, this.zoom);
         this.renderUnitsOnMap();
         this.game.ui_manager.render(this.ctx, this.zoom);

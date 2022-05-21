@@ -23,6 +23,7 @@ class Pointer {
         if (currentGridX != this.mapX || currentGridY != this.mapY) {
             this.mapX = currentGridX;
             this.mapY = currentGridY;
+            this.game.ui_manager.updateMapCursorPosition(this.mapX, this.mapY)
         }
     }
 }

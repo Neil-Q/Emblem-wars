@@ -1,6 +1,7 @@
-import { Map_cursor }           from "../entities/ui/map_cursor.js"
-import { Tile_infos_panel }     from "../entities/ui/tile_infos_panel.js"
-import { Turn_indicator }       from "../entities/ui/turn_indicator.js"
+import { Map_action_choice_menu }   from "../entities/ui/map_action_choice_menu.js"
+import { Map_cursor }               from "../entities/ui/map_cursor.js"
+import { Tile_infos_panel }         from "../entities/ui/tile_infos_panel.js"
+import { Turn_indicator }           from "../entities/ui/turn_indicator.js"
 
 class Ui_manager {
     constructor(game) {
@@ -12,21 +13,57 @@ class Ui_manager {
             turn_indicator : new Turn_indicator()
         };
 
-        this.states = [
-            new Ui_state_map(this)          //0
-        ]
-        this.currentState = this.states[0];
+        this.menus = {
+            map_action_choice : new Map_action_choice_menu(this.game, this),
+        }
+
+        this.itemsToRender = {
+            mapCursor : true,
+            tileInfosPanel : true,
+            turnIndicator : true,
+
+            mapActionChoiceMenu : false
+        }
+
+        this.currentMenu = null;
+    }
+
+    closeMapActionChoiceMenu() {
+        this.itemsToRender.mapActionChoiceMenu = false;
+        this.currentMenu = null;
+    }
+
+    fire(event, datas) {
+
+        if (!this.currentMenu) return
+
+        let menu = undefined;
+
+        switch (this.currentMenu) {
+            case "mapActionChoiceMenu" :
+                menu = this.menus.map_action_choice
+                break;
+        }
+
+        return menu.fire(event, datas);
+    }
+
+    lockMapCursorPosition() {
+        this.items.map_cursor.lockPosition();
+    }
+
+    openMapActionChoiceMenu(mapX, mapY, attack = false, harmonize = false) {
+        this.menus.map_action_choice.build(mapX, mapY, attack, harmonize);
+        this.itemsToRender.mapActionChoiceMenu = true;
+        this.currentMenu = "mapActionChoiceMenu";
     }
 
     render(ctx, zoom) {
-        this.currentState.render(ctx, zoom);
-    }
-
-    renderMapCursor(ctx, zoom) {
-        let mapX = this.game.pointer.mapX;
-        let mapY = this.game.pointer.mapY;
-
-        this.items.map_cursor.render(ctx, zoom, mapX, mapY);
+        if(this.itemsToRender.mapCursor) this.items.map_cursor.render(ctx, zoom);
+        if(this.itemsToRender.tileInfosPanel) this.renderTileInfosPanel(ctx, zoom);
+        if(this.itemsToRender.turnIndicator) this.renderTurnIndicator(ctx, zoom);
+        
+        if(this.itemsToRender.mapActionChoiceMenu) this.menus.map_action_choice.render(ctx, zoom);
     }
 
     renderTileInfosPanel(ctx, zoom) {
@@ -56,25 +93,12 @@ class Ui_manager {
         this.items.turn_indicator.render(ctx, zoom, teamName, teamColor, mouseX, mouseY, canvasWidth, canvasHeight);
     }
 
-}
-
-/**
- * UI STATES
- */
-
-/**
- * MAP STATE
- */
-
-class Ui_state_map {
-    constructor(manager) {
-        this.manager = manager;
+    unlockMapCursorPosition() {
+        this.items.map_cursor.unlockPosition();
     }
 
-    render(ctx, zoom) {
-        this.manager.renderMapCursor(ctx, zoom);
-        this.manager.renderTileInfosPanel(ctx, zoom);
-        this.manager.renderTurnIndicator(ctx, zoom);
+    updateMapCursorPosition(mapX, mapY) {
+        this.items.map_cursor.updatePosition(mapX, mapY);
     }
 }
 

@@ -1,97 +1,25 @@
 class Pathfinder {
     constructor(game, map) {
-        this.game = game
+        this.game = game;
         this.map = map;
 
         this.currentPathMap = {
-            moveableTiles : null,       // [x, y, canStopHere(0/1)]
-            attackableTiles : null
+            moveableTiles : [],       // [x, y, canStopHere(0/1)]
+            attackableTiles : []
         }
-
-        this.enemiesReachMaps = this.initReachesMaps();
-    }
-
-    trackEnemy(enemyId) {
-        let teamTurn = this.game.turns_manager.getTeamTurn();
-        let nameOfPlayingTeam = this.game.teams_manager.getTeamName(teamTurn);
-
-        // On commence par verifier que l'unité qu'on vient de demander ne se trouve pas déjà dans la liste
-        // Si c'est le cas on l'enlève
-        if (this.enemiesReachMaps[nameOfPlayingTeam].trackedEnemies.find( enemy => enemy.id == enemyId)) {
-            let newIndividualReachs = [];
-
-            this.enemiesReachMaps[nameOfPlayingTeam].trackedEnemies.forEach( enemy => {
-                if (enemy.id != enemyId) newIndividualReachs.push(enemy);  
-            })
-
-            this.enemiesReachMaps[nameOfPlayingTeam].trackedEnemies = newIndividualReachs;
-            this.mergeTrackedReach(nameOfPlayingTeam);
-            return
-        }
-
-        let enemyMoveableTiles = this.calculateMoveableTiles(enemyId);
-        let enemyAttackableTiles = this.calculateAttackableTiles(enemyMoveableTiles);
-
-        let enemyReachableTiles = enemyMoveableTiles.concat(enemyAttackableTiles);
-        let enemyDatas = this.game.units_manager.getUnitDatas(enemyId);
-
-
-        let enemy = {};
-        enemy.id = enemyId;
-        enemy.posX = enemyDatas.posX;
-        enemy.posY = enemyDatas.posY;
-        enemy.moveDistance = enemyDatas.moveDistance;
-        enemy.reachMap = enemyReachableTiles;
-
-        this.enemiesReachMaps[nameOfPlayingTeam].trackedEnemies.push(enemy);
-
-        this.mergeTrackedReach(nameOfPlayingTeam);
-
-        console.log("Added unit to tracked enemies : " + enemy.id);
-    }
-
-    checkMoveType(tileMoves, moveType) {
-        let moveAble = false;
-
-        switch (moveType) {
-            case "climbing" :
-                moveAble = tileMoves.climbing;
-                break
-
-            case "fly" :
-                moveAble = tileMoves.fly;
-                break;
-            
-            case "foot" :
-                moveAble = tileMoves.foot;
-                break;
-
-            case "swiming" :
-                moveAble = tileMoves.swiming;
-                break;
-        }
-
-        return moveAble;
-    }
-
-    checkIfCanMoveHere(mapX, mapY) {
-        if (!this.currentPathMap.moveableTiles) return false;
-
-        let canMoveHere = false;
-        this.currentPathMap.moveableTiles.find(tile => tile[0] == mapX && tile[1] == mapY && tile[2] == true) ? canMoveHere = true : canMoveHere = false;
-
-        return canMoveHere;
     }
 
     calculateAttackableTiles(moveableTilesList, attackerId) {
+
         let mapChunk = new MapChunk(moveableTilesList, 1);
         let frontiers = mapChunk.calculateFrontierFromOutside(true, true);
-
+        
         let attackableTiles = [];
-
+        
         let map = this.map;
         let attackerTeam = this.game.units_manager.getUnitDatas(attackerId).team;
-
+        
+        console.log("calculate atk tiles");
         frontiers.outerFrontier.forEach( tile => {
             if (tile[0] <= 0 || tile[1] <= 0 || tile [0] > this.map.gridWidth || tile[1] > this.map.gridHeight) return
             if (!map.checkIfMoveAble(tile[0], tile[1], "foot")) return
@@ -104,6 +32,8 @@ class Pathfinder {
 
             attackableTiles.push(tile);
         })
+
+        console.log(attackableTiles);
         return attackableTiles;
     }
 
@@ -205,60 +135,41 @@ class Pathfinder {
         return tilesInReach;
     }
 
-    mergeTrackedReach(teamName) {
-        let reachMap = []
+    checkMoveType(tileMoves, moveType) {
+        let moveAble = false;
 
-        this.enemiesReachMaps[teamName].trackedEnemies.forEach( enemy => {
-            reachMap = reachMap.concat(enemy.reachMap);
-        });
+        switch (moveType) {
+            case "climbing" :
+                moveAble = tileMoves.climbing;
+                break
 
-        let reachMapIndexes = []
-        reachMap.forEach( tile => reachMapIndexes.push(this.map.getMapIndexFromCoordinates(tile[0], tile[1])));
+            case "fly" :
+                moveAble = tileMoves.fly;
+                break;
+            
+            case "foot" :
+                moveAble = tileMoves.foot;
+                break;
 
-        reachMapIndexes = reachMapIndexes.sort().filter(function(item, pos, ary) {
-            return !pos || item != ary[pos - 1];
-        });
-    
-        reachMap = [];
-        reachMapIndexes.forEach( tile => {
-            let coordinates = this.map.getMapCoordinatesFromIndex(tile);
-            reachMap.push([coordinates.x, coordinates.y]);
-        });
+            case "swiming" :
+                moveAble = tileMoves.swiming;
+                break;
+        }
 
-        this.enemiesReachMaps[teamName].totalReach = reachMap;
+        return moveAble;
     }
 
-    initReachesMaps() {
-        let enemiesReachMaps = {};
+    checkIfCanMoveHere(mapX, mapY) {
+        if (!this.currentPathMap.moveableTiles) return false;
 
-        this.game.teams_manager.teams.forEach( team => {
-            enemiesReachMaps[team.name] = {
-                trackedEnemies : [],
-                totalReach : []
-            }
-        })
+        let canMoveHere = false;
+        this.currentPathMap.moveableTiles.find(tile => tile[0] == mapX && tile[1] == mapY && tile[2] == true) ? canMoveHere = true : canMoveHere = false;
 
-        return enemiesReachMaps;
+        return canMoveHere;
     }
 
-    renderTrackedEnemiesReach(ctx, zoom) {
-        let playingTeam = this.game.turns_manager.getTeamTurnName();
-        let reachableTiles = this.enemiesReachMaps[playingTeam].totalReach;
-
-        if(!reachableTiles) return;
-
-        reachableTiles.forEach( tile => {
-
-            let tileX = tile[0];
-            let tileY = tile[1];
-
-            let xOrigin = (tileX - 1) * 16 * zoom ;
-            let yOrigin = (tileY - 1) * 16 * zoom ;
-            let size    = 16 * zoom ;
-
-            ctx.fillStyle = "rgba(245, 0, 0, 0.2)";
-            ctx.fillRect(xOrigin, yOrigin, size, size);
-        });
+    getAttackableTiles() {
+        return JSON.parse(JSON.stringify(this.currentPathMap.attackableTiles));
     }
 
     renderCurrentPathMap(ctx, zoom) {
@@ -307,8 +218,8 @@ class Pathfinder {
     }
 
     resetPathMap() {
-        this.currentPathMap.moveableTiles = null;
-        this.currentPathMap.attackableTiles = null;
+        this.currentPathMap.moveableTiles = [];
+        this.currentPathMap.attackableTiles = [];
     }
 
     setNewPathMap(unitId) {
@@ -320,6 +231,28 @@ class Pathfinder {
         this.currentPathMap.attackableTiles = attackableTiles;
 
         console.timeEnd("Total pathfinding time");
+    }
+
+    setNewReachMap(mapX, mapY) {
+        let tilesInReach = [
+            [mapX       , mapY - 1  ],
+            [mapX + 1   , mapY - 1  ],
+            [mapX + 1   , mapY      ],
+            [mapX + 1   , mapY + 1  ],
+            [mapX       , mapY + 1  ],
+            [mapX - 1   , mapY + 1  ],
+            [mapX - 1   , mapY      ],
+            [mapX - 1   , mapY - 1  ]
+        ]
+
+        let map = this.map;
+        let attackableTiles = this.currentPathMap.attackableTiles;
+        tilesInReach.forEach( tile => {
+            if (tile[0] <= 0 || tile[1] <= 0 || tile [0] > map.gridWidth || tile[1] > map.gridHeight) return
+            if (!map.checkIfMoveAble(tile[0], tile[1], "foot")) return
+
+            attackableTiles.push(tile);
+        })
     }
 }
 

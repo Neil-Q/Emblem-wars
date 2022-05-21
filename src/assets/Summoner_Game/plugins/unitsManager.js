@@ -1,4 +1,3 @@
-import { Base_unit } from "../entities/units/baseUnit.js";
 import { Units_factory } from "./unitsFactory.js";
 
 class Units_manager {
@@ -10,16 +9,6 @@ class Units_manager {
         this.unitsCreated = 0;
 
         this.selectedUnit = null;
-    }
-
-    addUnit(team, posX, posY, speed) {
-        let newUnit = new Base_unit(this.unitsCreated + 1 , team, posX, posY, speed);
-        this.unitsCreated ++;
-
-        this.unitsList.push(newUnit);
-        this.game.turns_manager.addUnitToLine(newUnit.id, newUnit.team, newUnit.speed);
-        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard_1", "blue");
-        this.game.renderer.sprites_renderer.loadMapSpriteSheet("guard_1", "red");
     }
 
     createUnit(team, archetype, rank, level, weaponId, posX, posY) {
