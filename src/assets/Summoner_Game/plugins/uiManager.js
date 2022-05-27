@@ -1,3 +1,4 @@
+import { Fight_stats_panel }        from "../entities/ui/fight_stats_panel.js"
 import { Map_action_choice_menu }   from "../entities/ui/map_action_choice_menu.js"
 import { Map_cursor }               from "../entities/ui/map_cursor.js"
 import { Tile_infos_panel }         from "../entities/ui/tile_infos_panel.js"
@@ -8,7 +9,8 @@ class Ui_manager {
         this.game = game;
 
         this.items = {
-            map_cursor : new Map_cursor(),
+            fight_stats_panel : new Fight_stats_panel (this.game),
+            map_cursor : new Map_cursor(this.game),
             tile_infos_panel : new Tile_infos_panel(),
             turn_indicator : new Turn_indicator()
         };
@@ -18,6 +20,7 @@ class Ui_manager {
         }
 
         this.itemsToRender = {
+            fight_stats_panel : false,
             mapCursor : true,
             tileInfosPanel : true,
             turnIndicator : true,
@@ -31,6 +34,14 @@ class Ui_manager {
     closeMapActionChoiceMenu() {
         this.itemsToRender.mapActionChoiceMenu = false;
         this.currentMenu = null;
+    }
+
+    close(panelOrMenuToOpen) {
+        switch (panelOrMenuToOpen) {
+            case "fight_stats_panel" :
+                this.itemsToRender.fight_stats_panel = false;
+                break;
+        }
     }
 
     fire(event, datas) {
@@ -52,6 +63,15 @@ class Ui_manager {
         this.items.map_cursor.lockPosition();
     }
 
+    open(panelOrMenuToOpen, datas) {
+        switch (panelOrMenuToOpen) {
+            case "fight_stats_panel" :
+                this.items.fight_stats_panel.build(datas.attacker, datas.defender);
+                this.itemsToRender.fight_stats_panel = true;
+                break;
+        }
+    }
+
     openMapActionChoiceMenu(mapX, mapY, attack = false, harmonize = false) {
         this.menus.map_action_choice.build(mapX, mapY, attack, harmonize);
         this.itemsToRender.mapActionChoiceMenu = true;
@@ -62,6 +82,7 @@ class Ui_manager {
         if(this.itemsToRender.mapCursor) this.items.map_cursor.render(ctx, zoom);
         if(this.itemsToRender.tileInfosPanel) this.renderTileInfosPanel(ctx, zoom);
         if(this.itemsToRender.turnIndicator) this.renderTurnIndicator(ctx, zoom);
+        if(this.itemsToRender.fight_stats_panel) this.items.fight_stats_panel.render(ctx, zoom);
         
         if(this.itemsToRender.mapActionChoiceMenu) this.menus.map_action_choice.render(ctx, zoom);
     }

@@ -14,14 +14,12 @@ class Tile_infos_panel {
         ctx.fillRect(xOrigin + 4 , yOrigin + 4 , 184, 80);
 
         ctx.fillStyle = "rgba(255, 230, 230, 0.8)"
-        ctx.font = "36px arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(tileDatas.name, xOrigin + 96, yOrigin + 44);
 
         //Dessine les informations    
         ctx.fillStyle = color;
-        ctx.font = "24px arial";
         ctx.textAlign = "left";
         ctx.textBaseline = "baseline";
         ctx.fillText("DEF : " + tileDatas.bonusDef, xOrigin + 20, yOrigin + 115);

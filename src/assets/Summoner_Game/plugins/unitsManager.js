@@ -100,15 +100,11 @@ class Units_manager {
 
     getUnitDatas(unitId) {
         let unit = this.findUnitFromId(unitId);
+        let datas = {};
 
-        let datas = {
-            id :            unit.id,
-            team :          unit.team,
-            posX :          unit.posX,
-            posY :          unit.posY,
-            moveType :      unit.moveType ,
-            moveDistance :  unit.moveDistance
-        }
+        Object.keys(unit).forEach(key => {
+            datas[key] = unit[key]; 
+        });
 
         return datas;
     }

@@ -70,6 +70,9 @@ class Map_action_choice_menu {
         this.mapX = undefined;
         this.mapY = undefined;
 
+        this.xOrigin = undefined;
+        this.yOrigin = undefined;
+
         this.width = 84;
         this.height = null;
 
@@ -79,13 +82,12 @@ class Map_action_choice_menu {
     build(mapX, mapY, attack = false, harmonize = false) {
         this.reset()
 
-        this.setOrigin(mapX, mapY);
         this.setPossibleChoices(attack, harmonize)
-
+        
         let menu = this;
         let parts = this.spriteParts;
         let height = 0;
-
+        
         height += parts.topBorder.height;
         height += parts.bottomBorder.height;
         Object.keys(menu.choices).forEach(choice => {
@@ -96,11 +98,12 @@ class Map_action_choice_menu {
                 name        : choice,
                 yOrigin     : 4 + ((menu.buttons.length) * parts.bodySection.height)
             }
-
+            
             menu.buttons.push(button);
         })
-
+        
         this.height = height;
+        this.setOrigin(mapX, mapY);
     }
 
     clicked(datas = null) {
@@ -125,8 +128,8 @@ class Map_action_choice_menu {
 
     getButton(globalX, globalY) {
         let zoom = this.game.zoom;
-        let relativeX = globalX - (this.mapX * 16 * zoom + 2 * zoom);
-        let relativeY = globalY - Math.ceil((this.mapY * 16 * zoom) - (16 * zoom / 2) - (this.height / 2 * zoom));
+        let relativeX = globalX - (this.xOrigin + 4);
+        let relativeY = globalY - (this.yOrigin + 4);
 
         let buttonClicked = false;
 
@@ -147,8 +150,8 @@ class Map_action_choice_menu {
 
         this.updateSelection();
 
-        let xOrigin = this.mapX * 16 * zoom + 2 * zoom;
-        let yOrigin = Math.ceil((this.mapY * 16 * zoom) - (16 * zoom / 2) - (this.height / 2 * zoom));
+        let xOrigin = this.xOrigin
+        let yOrigin = this.yOrigin
 
         let ybuilder = yOrigin;
 
@@ -199,6 +202,15 @@ class Map_action_choice_menu {
     setOrigin(mapX, mapY) {
         this.mapX = mapX;
         this.mapY = mapY;
+
+        let zoom = this.game.zoom;
+        let xOrigin = this.mapX * 16 * zoom;
+        let yOrigin = Math.ceil((this.mapY * 16 * zoom) - (16 * zoom / 2) - (this.height / 2 * zoom));
+
+        this.mapX < (this.game.map.gridWidth / 2) + 1  ? xOrigin += (2 * zoom) : xOrigin -= (18 * zoom + this.width * zoom);
+
+        this.xOrigin = xOrigin;
+        this.yOrigin = yOrigin;
     }
 
     updateSelection() {

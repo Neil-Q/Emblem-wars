@@ -1,3 +1,4 @@
+import { colorPalette }    from "../entities/ui/color_palette.js"
 import { Sprites_renderer } from "./sprites_renderer.js"
 
 class Renderer {
@@ -8,12 +9,14 @@ class Renderer {
     
         this.sprites_renderer = new Sprites_renderer(game);
         this.zoom = game.zoom;
+        this.colorPalette = colorPalette;
 
         this.extraLayers = {
             pathfinder : false
         };
 
         this.ctx.imageSmoothingEnabled = false;
+        this.ctx.font = 9  * this.zoom + "px summonerPixel";
     }
 
     clearCanvas() {
@@ -39,6 +42,7 @@ class Renderer {
 
         this.game.map.render(this.ctx, this.zoom);
         if(this.extraLayers.pathfinder) this.game.map.pathfinder.renderCurrentPathMap(this.ctx, this.zoom);
+        this.game.map.pathfinder.renderPath(this.ctx, this.zoom);
         this.renderUnitsOnMap();
         this.game.ui_manager.render(this.ctx, this.zoom);
 

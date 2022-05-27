@@ -1,28 +1,57 @@
 class Map_cursor {
-    constructor() {
-        this.color = "rgba(0, 0, 255, 0.8)";
+    constructor(game) {
+        this.game = game;
         this.width = 4;
-        this.baseSize = 16;
+
+        this.spriteSheet = new Image;
+        this.spriteSheet.src = require("./sprites/map_cursor.png");
+        
+        this.locked = false;
 
         this.mapX = undefined;
         this.mapY = undefined;
 
-        this.locked = false;
+        this.duration = 500;
+        this.start = null;
+
+        this.form = 0;
+    }
+
+    changeType(type) {
+        this.form = type;
     }
 
     lockPosition() {
         this.locked = true;
     }
 
-    render(ctx, zoom, color = this.color) {
-        let xOrigin = (this.mapX - 1) * this.baseSize * zoom;
-        let yOrigin = (this.mapY - 1) * this.baseSize * zoom;
+    render(ctx, zoom) {
+        if (this.start == null) this.start = Date.now();
 
-        let size = this.baseSize * zoom - 4
+        let xOrigin = (this.mapX - 1) * 16 * zoom - (4 * zoom);
+        let yOrigin = (this.mapY - 1) * 16 * zoom - (4 * zoom);
 
-        ctx.strokeStyle = color;
-        ctx.lineWidth = this.width;
-        ctx.strokeRect(xOrigin + 2, yOrigin + 2, size, size);
+        let color = this.game.teams_manager.getTeamColorCode(this.game.turns_manager.getTeamTurn());
+
+        let phase = Math.floor(((Date.now() - this.start) % this.duration) / (this.duration / 4));
+
+        let spriteX = this.form * 75;
+        spriteX += phase * 25;
+
+        if(phase == 3) spriteX -= 25;
+
+        let spriteY = 0;
+
+        switch(color) {
+            case "blue" :
+                spriteY = 0;
+                break;
+            case "red"  :
+                spriteY = 25;
+                break;
+        }
+
+        ctx.drawImage(this.spriteSheet, spriteX, spriteY, 23, 23, xOrigin, yOrigin, 23 * zoom, 23 * zoom);
     }
 
     unlockPosition() {

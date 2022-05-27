@@ -20,11 +20,43 @@ class Pointer {
         let currentGridY = Math.ceil(this.mouseY / (16 * this.zoom));
 
         // Si on change de case
-        if (currentGridX != this.mapX || currentGridY != this.mapY) {
-            this.mapX = currentGridX;
-            this.mapY = currentGridY;
-            this.game.ui_manager.updateMapCursorPosition(this.mapX, this.mapY)
-        }
+        if (currentGridX != this.mapX || currentGridY != this.mapY) this.moveCursor(currentGridX, currentGridY);
+    }
+
+    moveCursor(mapX, mapY) {
+        this.mapX = mapX;
+        this.mapY = mapY;
+
+        this.game.ui_manager.updateMapCursorPosition(this.mapX, this.mapY)
+        this.game.fire("cursorMove");
+    }
+
+    moveCursorDown() {
+        let mapX = this.mapX;
+        let mapY = this.mapY + 1 ;
+
+        if (mapY <= this.game.map.gridHeight) this.moveCursor(mapX, mapY);
+    }
+
+    moveCursorLeft() {
+        let mapX = this.mapX - 1;
+        let mapY = this.mapY;
+
+        if (mapX >= 1) this.moveCursor(mapX, mapY);
+    }
+
+    moveCursorRight() {
+        let mapX = this.mapX + 1;
+        let mapY = this.mapY;
+
+        if (mapX <= this.game.map.gridWidth) this.moveCursor(mapX, mapY);
+    }
+
+    moveCursorUp() {
+        let mapX = this.mapX;
+        let mapY = this.mapY - 1 ;
+
+        if (mapY >= 1) this.moveCursor(mapX, mapY);
     }
 }
 

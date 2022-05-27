@@ -3,7 +3,7 @@ class Turns_manager {
         this.game = game;
         this.teams_manager = game.teams_manager;
 
-        this.teamTurn = 0;
+        this.teamTurn = 1;
 
         this.waitingLine = {
             units : [],
@@ -12,7 +12,7 @@ class Turns_manager {
         this.lounge = [];
         this.readyUnits = [];
 
-        this.printTurnsInformations = false;
+        this.printTurnsInformations = true;
     }
 
     advanceTime(time) {
@@ -137,13 +137,13 @@ class Turns_manager {
         // Si ce n'est pas le cas on avance le temps d'une durée prédéfinie et on fait tourner le tour des joueurs        
         let nextTimeout = this.getTimeBeforeNextAction();
         if(!nextTimeout) {
-            let teamTurn = this.getTeamTurn() + 1;
-            if (teamTurn > this.teams_manager.teams.length - 1) teamTurn = 0;
+            this.teamTurn += 1;
+            if (this.teamTurn > this.teams_manager.getNumberOfTeams()) this.teamTurn = 1;
+            console.log("turn : " + this.teamTurn);
 
-            this.setTeamTurn(teamTurn);
             console.log("Advance time by default");
             this.advanceTime(100);
-            console.log("Team turn : " + this.teams_manager.teams[this.teamTurn].name);
+            console.log("Team turn : " + this.teams_manager.getTeamName(this.teamTurn));
             this.printAllUnitsStates()
             return
         }
@@ -157,7 +157,7 @@ class Turns_manager {
         if (!this.waitingLine.units.find(unit => unit.timeout >= 1 && unit.team != this.teamTurn)) {
             
             let teamTurn = this.getTeamTurn() + 1;
-            if (teamTurn > this.teams_manager.teams.length - 1) teamTurn = 0;
+            if (teamTurn > this.teams_manager.teams.length) teamTurn = 1;
             this.setTeamTurn(teamTurn);
             console.log("No time elapsed");
             console.log("Team turn : " + this.teams_manager.teams[this.teamTurn].name);
@@ -192,7 +192,7 @@ class Turns_manager {
         }
 
         this.advanceTime(nextTimeout)
-        console.log("Team turn : " + this.teams_manager.teams[this.teamTurn].name);
+        console.log("Team turn : " + this.teams_manager.teams[this.teamTurn - 1].name);
         this.printAllUnitsStates();
     }
 

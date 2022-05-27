@@ -1,3 +1,4 @@
+import { Colorizer }        from "./plugins/colorizer.js";
 import { Inputs_manager }   from "./plugins/inputsManager.js";
 import { Map }              from "./plugins/map.js";
 import { Pointer }          from "./plugins/pointer.js";
@@ -14,6 +15,7 @@ class Game {
 
         this.renderer = undefined;
         this.canvas = undefined;
+        this.colorizer = new Colorizer();
         this.pointer = new Pointer(this);
         this.teams_manager = new Teams_manager();
         this.ui_manager = new Ui_manager(this);
@@ -22,9 +24,10 @@ class Game {
         this.map = undefined;
 
         this.states = [
-            new Game_state_map(this),               // 0  
-            new Game_state_unitSelected(this),      // 1     
-            new Game_state_unitMoving(this),        // 2
+            new Game_state_map(this),                   // 0  
+            new Game_state_unitSelected(this),          // 1     
+            new Game_state_unitMoving(this),            // 2
+            new Game_state_UnitReadyToAttack(this),     // 3
         ]
         this.currentState = this.states[0];
     }
@@ -57,7 +60,28 @@ class Game {
     }
 
     fireDefault(event) {
-        console.log(event);
+
+        switch(event) {
+            case "arrowDown" :
+                this.pointer.moveCursorDown();
+                break;
+            
+            case "arrowLeft" :
+                this.pointer.moveCursorLeft();
+                break;
+            
+            case "arrowRight" :
+                this.pointer.moveCursorRight();
+                break;
+
+            case "arrowUp" :
+                this.pointer.moveCursorUp();
+                break;
+            default :
+                //console.log(event);
+        }
+    
+        
     }
 
     launch(location) {
@@ -67,22 +91,21 @@ class Game {
         this.createCanvas();
 
         this.renderer = new Renderer(this);
-        this.map = new Map(this);
 
+        this.map = new Map(this);
         this.map.image.onload = () => {
             this.map.showMap();
         }
-
         this.map.loadMap("map_01");
 
-        this.units_manager.createUnit(0, "guard", 1, 1, 1, 15, 11);
-        this.units_manager.createUnit(0, "guard", 2, 1, 1, 16, 8);
-        this.units_manager.createUnit(0, "warrior", 1, 1, 1, 13, 8);
-        this.units_manager.createUnit(0, "warrior", 2, 1, 1, 22, 10);
-        this.units_manager.createUnit(1, "swordsman", 1, 1, 1, 22, 8);
-        this.units_manager.createUnit(1, "swordsman", 2, 1, 1, 20, 5);
-        this.units_manager.createUnit(1, "soldier", 1, 1, 1, 7, 9);
-        this.units_manager.createUnit(1, "soldier", 2, 1, 1, 7, 6);
+        this.units_manager.createUnit(1, "guard", 1, 1, 1, 15, 11);
+        this.units_manager.createUnit(1, "guard", 2, 1, 1, 16, 8);
+        this.units_manager.createUnit(1, "warrior", 1, 1, 1, 13, 8);
+        this.units_manager.createUnit(2, "warrior", 2, 1, 1, 22, 10);
+        this.units_manager.createUnit(2, "swordsman", 1, 1, 1, 22, 8);
+        this.units_manager.createUnit(2, "swordsman", 2, 1, 1, 20, 5);
+        this.units_manager.createUnit(3, "soldier", 1, 1, 1, 6, 11);
+        this.units_manager.createUnit(3, "soldier", 2, 1, 1, 7, 6);
 
         let inputsManager = new Inputs_manager(this);
         inputsManager.listen();
@@ -125,6 +148,11 @@ class Game {
                 break;
             }
 
+            case "Unit_Ready_To_Attack" : {
+                this.currentState = this.states[3];
+                break;
+            }
+
             default : {
                 console.log("Game state not found");
             }
@@ -143,26 +171,22 @@ class Game_state_map {
         this.game = game;
     }
 
-    clicked() {
-       
-    }
-
     enter() {
     }
 
     fire(event) {
         switch (event) {
-            case "click" :                
-                this.clicked();
-                break;
+            case "a_down" :
             case "mousedown" :                
                 this.mouseDown();
                 break;
-            case "mouseup" :                
-                this.mouseUp();
-                break;
+
             case "space" :
                 this.game.nextTurn();
+                break;
+
+            default :
+                this.game.fireDefault(event);
                 break;
         }
     }
@@ -175,10 +199,6 @@ class Game_state_map {
                 this.game.setState("Unit_Selected");
                 return
         }
-    }
-
-    mouseUp() {
-
     }
 
     quit() {
@@ -207,6 +227,10 @@ class Game_state_unitSelected {
         }
     }
 
+    cursorMove() {
+        this.game.map.pathfinder.calculatePath(this.game.pointer.mapX, this.game.pointer.mapY);
+    }
+
     enter() {
         this.selectedUnitDatas = this.game.units_manager.getSelectedUnitDatas();
         this.game.map.pathfinder.setNewPathMap(this.selectedUnitDatas.id);
@@ -217,25 +241,33 @@ class Game_state_unitSelected {
         if (!this.game.turns_manager.isReady(this.selectedUnitDatas.id)) this.selectedUnitCanPlay = false;
     }
 
-    escape() {
-        this.game.units_manager.unselectUnit()
+    goBack() {
+        this.game.units_manager.unselectUnit();
+        this.game.map.pathfinder.clearPath();
         this.game.setState("Map");
     }
 
     fire(event) {
         switch (event) {
+            case "a" :
             case "click" :                
                 this.clicked();
-                break;  
-            case "escape" :
-                this.escape() ;
                 break;
+
+            case "cursorMove" :
+                this.cursorMove();
+                break;
+
+            case "escape" :
+            case "rightClick" :
+                this.goBack() ;
+                break;
+
+            case "a_up" :
             case "mouseUp" :
                 this.mouseUp();
                 break;
-            case "rightClick" :
-                this.rightClick();
-                break;
+
             default :
                 this.game.fireDefault(event);
         }
@@ -243,11 +275,7 @@ class Game_state_unitSelected {
 
     mouseUp() {
         if (this.selectedUnitCanPlay == true) return
-        this.escape();
-    }
-
-    rightClick() {
-        this.escape();
+        this.goBack();
     }
 
     quit() {
@@ -261,86 +289,171 @@ class Game_state_unitMoving {
         this.game = game;
 
         this.selectedUnitDatas = undefined
+
         this.targetMapX = undefined;
         this.targetMapY = undefined;
+
+        this.enemiesAtRange = [];
+        this.alliesAtRange = []
     }
 
-    clicked() {
-        this.game.turns_manager.returnToWaitingline(this.selectedUnitDatas.id);
-        this.game.units_manager.unselectUnit();
-
-        this.game.setState("Map");
+    attack() {
+        let self = this;
+        let datas = {
+            enemiesAtRange : self.enemiesAtRange
+        };
+        this.game.setState("Unit_Ready_To_Attack", datas);
     }
 
     enter(datas) {
-        this.selectedUnitDatas = datas.selectedUnitDatas;
-        this.targetMapX = datas.targetMapX;
-        this.targetMapY = datas.targetMapY;
+        this.selectedUnitDatas = this.game.units_manager.getSelectedUnitDatas();
+
+        if(datas) {
+            this.targetMapX = datas.targetMapX;
+            this.targetMapY = datas.targetMapY;
+        }
 
         this.game.map.pathfinder.setNewReachMap(this.targetMapX, this.targetMapY);
         this.game.renderer.showLayer("pathfinder");
         
         this.game.ui_manager.lockMapCursorPosition();
 
-        // On verifie si un ennemie est à portée
+        // On verifie cherche les unités à porté
         let haveEnemyInReach = false;
+        //let haveAllyInReach = false;
+
+        this.enemiesAtRange = [];
+        this.alliesAtRange = [];
+
         let tilesInReach = this.game.map.pathfinder.getAttackableTiles();
         let hero = this.selectedUnitDatas;
         let game = this.game;
-        console.log(haveEnemyInReach);
 
-        function checkForEnemyInReach(tile) {
+        tilesInReach.forEach( tile => {
             let unit = game.units_manager.findUnitFromPosition(tile[0], tile[1]);
-            if (!unit) return true;
+            if (!unit) return;
 
             unit = game.units_manager.getUnitDatas(unit);
 
-            if (unit.team == hero.team) return true;
+            if (unit.team == hero.team) {
+                //haveAllyInReach = true;
+                this.alliesAtRange.push(unit);
+                
+                return;
+            }
+            
             haveEnemyInReach = true;
-            return false;
-        }
-        tilesInReach.every(checkForEnemyInReach);
+            this.enemiesAtRange.push(unit);
+        })
 
         this.game.ui_manager.openMapActionChoiceMenu(this.targetMapX, this.targetMapY, haveEnemyInReach);
     }
 
     fire(event) {
         switch (event) {
-            case "click" :                
-                this.clicked();
-                break;  
+            case "attack" :
+                this.attack();
+                break;
+
             case "escape" :
-                this.escape() ;
-                break;
             case "rightClick" :
-                this.escape();
+                this.goBack();
                 break;
+
             case "wait" :
                 this.wait()
                 break;
         }
     }
 
-    escape() {
+    goBack() {
+        this.game.map.pathfinder.clearPath();
         this.game.setState("Unit_Selected");
     }
-
+    
     quit() {
-        this.game.ui_manager.unlockMapCursorPosition();
-
+        
         this.game.map.pathfinder.resetPathMap();
-        this.game.renderer.hideLayer("pathfinder");
-
+        this.game.renderer.hideLayer("pathfinder");       
+        this.game.ui_manager.unlockMapCursorPosition();
         this.game.ui_manager.closeMapActionChoiceMenu();
     }
 
     wait() {
         this.game.units_manager.moveUnitTo(this.targetMapX, this.targetMapY, this.selectedUnitDatas.id);
         this.game.turns_manager.returnToWaitingline(this.selectedUnitDatas.id);
+        this.game.map.pathfinder.clearPath();
         this.game.setState("Map");
     }
 }
 
+class Game_state_UnitReadyToAttack {
+    constructor(game) {
+        this.game = game;
+        
+        this.mapX = undefined;
+        this.mapY = undefined;
 
+        this.selectedUnitDatas = undefined;
+        this.attackableUnits = [];
+
+        this.currentTarget = undefined;
+    }
+
+    cursorMove() {
+        let targetedUnit = this.attackableUnits.find( unit => unit.posX == this.game.pointer.mapX && unit.posY == this.game.pointer.mapY);
+
+        if (!targetedUnit) {
+            this.game.ui_manager.close("fight_stats_panel");
+            this.game.ui_manager.items.map_cursor.changeType(0);
+            return
+        }
+        
+        this.game.ui_manager.items.map_cursor.changeType(1);
+        let self = this;
+        let datas = {
+            attacker : self.selectedUnitDatas,
+            defender : targetedUnit
+        }
+        this.game.ui_manager.open("fight_stats_panel", datas);
+    }
+
+    enter(datas) {
+        this.mapX = datas.mapX;
+        this.mapY = datas.mapY;
+
+        this.selectedUnitDatas = this.game.units_manager.getSelectedUnitDatas();
+
+        this.attackableUnits = datas.enemiesAtRange;
+        console.log(this.attackableUnits);
+    }
+
+    fire(event) {
+        switch (event) {
+            
+            case "cursorMove" :
+                this.cursorMove()
+                break;
+
+            case "escape" :
+            case "rightClick" :
+                this.goBack();
+                break;
+
+            default :
+                this.game.fireDefault(event);
+                break;
+        }
+    }
+
+    goBack() {
+        this.game.setState("Unit_Moving");
+    }
+
+    quit() {
+
+    }
+
+}
 
 export {Game};

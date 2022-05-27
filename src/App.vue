@@ -3,6 +3,12 @@
 </template>
 
 <style lang="scss">
+
+@font-face {
+  font-family: "summonerPixel";
+  src: url("./assets/Summoner_Game/fonts/summonerPixel.ttf");
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

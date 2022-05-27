@@ -3,10 +3,66 @@ class Pathfinder {
         this.game = game;
         this.map = map;
 
+        this.spriteSheets = {
+            pathArrow : new Image
+        }
+        this.spriteSheets.pathArrow.src = require("../entities/ui/sprites/pathfinder_arrow.png");
+
         this.currentPathMap = {
-            moveableTiles : [],       // [x, y, canStopHere(0/1)]
+            moveableTiles : [],       // [x, y, canStopHere(0/1), costSoFar, costBack]
             attackableTiles : []
         }
+
+        this.path = {
+            steps : [],
+            costSofar : 0
+        }
+
+    }
+
+    buildPathArrow() {
+        let steps = this.path.steps;
+
+        steps[0].arrowSprite = steps[0].direction - 1;
+
+        for (let i = 1; i < steps.length - 1; i++) {
+            let currentStep = steps[i]
+
+            let nextDirection = currentStep.direction;
+            let previousDirection = steps[i - 1].direction;
+
+            if (previousDirection == nextDirection) {
+                if (previousDirection % 2) {
+                    currentStep.arrowSprite = 4;
+                    continue;
+                }
+                currentStep.arrowSprite = 5;
+                continue;
+            }
+
+            let elbowCode = nextDirection + previousDirection * 10;
+
+            switch (elbowCode) {
+                case 14 :
+                case 23 :
+                    currentStep.arrowSprite = 6;
+                    break;
+                case 12 :
+                case 43 :
+                    currentStep.arrowSprite = 7;
+                    break;
+                case 21 :
+                case 34 :
+                    currentStep.arrowSprite = 8;
+                    break;
+                case 32 :
+                case 41 :
+                    currentStep.arrowSprite = 9;
+                    break;
+            }
+        }
+
+        steps[steps.length - 1].arrowSprite = steps[steps.length - 2].direction + 9;
     }
 
     calculateAttackableTiles(moveableTilesList, attackerId) {
@@ -33,7 +89,6 @@ class Pathfinder {
             attackableTiles.push(tile);
         })
 
-        console.log(attackableTiles);
         return attackableTiles;
     }
 
@@ -58,7 +113,7 @@ class Pathfinder {
         let closeUnits = units_manager.getNearbyUnits(unitId);
         
         let tilesChecked = [];
-        let tilesInReach = [[start.x, start.y, false]];
+        let tilesInReach = [[start.x, start.y, false, 0, moveDistance]];
         let frontier = [start];
 
         tilesChecked.push([start.x, start.y]);
@@ -120,7 +175,7 @@ class Pathfinder {
 
                     newFrontier.push({x : neighbour.x, y : neighbour.y, weight : 1});
                     tilesChecked.push([neighbour.x, neighbour.y]);
-                    tilesInReach.push([neighbour.x, neighbour.y, canStopHere]);
+                    tilesInReach.push([neighbour.x, neighbour.y, canStopHere, i + 1, (moveDistance - i + neighbourDatas.moveCost - 2)]);
                     checkedCount++;
                 })
 
@@ -133,6 +188,51 @@ class Pathfinder {
 
         console.timeEnd("Calculating moveables tiles");
         return tilesInReach;
+    }
+
+    calculatePath(mapX, mapY) {
+        this.clearPath()
+
+        if (this.currentPathMap.moveableTiles.lentgh == 0) return;
+        
+        let hero = this.game.units_manager.getSelectedUnitDatas();
+        if (!hero) return;
+        if (mapX == hero.posX && mapY == hero.posY) return;
+        
+        let goal = this.currentPathMap.moveableTiles.find( tile => tile[0] == mapX && tile[1] == mapY && tile[2] == true);
+        if (!goal) return this.clearPath();
+
+        let lookingDirection = 1; // east : 1 - south : 2 - west : 3 - north : 4
+        this.path.steps.push({mapX : goal[0], mapY : goal[1], costSoFar : goal[3]});
+        
+        for (let i = 0; i < hero.moveDistance ; i++) {
+            let lastStep = this.path.steps[0];
+            let cheaperTiles = this.currentPathMap.moveableTiles.filter( tile => tile[3] < lastStep.costSoFar);
+
+            let neighbours = [
+                {x : lastStep.mapX + 1 , y : lastStep.mapY    },    // eastern neighbour  - 1
+                {x : lastStep.mapX     , y : lastStep.mapY + 1},    // southern neighbour - 2
+                {x : lastStep.mapX - 1 , y : lastStep.mapY    },    // western neighbour  - 3
+                {x : lastStep.mapX     , y : lastStep.mapY - 1},    // northern neighbour - 4
+            ]
+
+            for (let i = 0; i < 4; i++) {
+                let direction = lookingDirection + i;
+                if (direction > 4 ) direction = direction % 4;
+
+                let neighbour = neighbours[direction - 1];
+
+                let tileToCheck = cheaperTiles.find( tile => tile[0] == neighbour.x && tile[1] == neighbour.y);
+                if (!tileToCheck) continue;
+
+                lookingDirection = direction;
+                this.path.steps.unshift({mapX : tileToCheck[0], mapY : tileToCheck[1], costSoFar : tileToCheck[3], direction : direction});
+                break;
+            }
+
+            if (this.path.steps[0].costSoFar == 0) break;            
+        }
+        this.buildPathArrow();
     }
 
     checkMoveType(tileMoves, moveType) {
@@ -168,8 +268,28 @@ class Pathfinder {
         return canMoveHere;
     }
 
+    clearPath() {
+        this.path = {
+            steps : [],
+            costSofar : 0
+        }
+    }
+
     getAttackableTiles() {
         return JSON.parse(JSON.stringify(this.currentPathMap.attackableTiles));
+    }
+
+    getEnemiesInReach() {
+        let enemies = [];
+        this.currentPathMap.attackableTiles.forEach(tile => {
+            let unit = this.game.units_manager.findUnitFromPosition(tile[0], tile[1]);
+            if (!unit) return
+            if (unit.team == this.game.turns_manager.getTeamTurn()) return
+
+            enemies.push(unit);
+        })
+
+        return enemies;
     }
 
     renderCurrentPathMap(ctx, zoom) {
@@ -220,6 +340,29 @@ class Pathfinder {
     resetPathMap() {
         this.currentPathMap.moveableTiles = [];
         this.currentPathMap.attackableTiles = [];
+    }
+
+    renderPath(ctx, zoom) {
+        if (this.path.steps.length == 0) return
+ 
+        let colorCode = this.game.teams_manager.getTeamColorCode(this.game.units_manager.getSelectedUnitDatas().team);
+        let innerRow = 3;
+        let row = 0;
+
+        switch (colorCode) {
+            case "blue" :
+                row = 0 + innerRow;
+                break;
+            case "red" :
+                row = 5 + innerRow;
+                break;
+            case "green" :
+                row = 10 + innerRow;
+        }
+
+        this.path.steps.forEach( step => {
+            ctx.drawImage(this.spriteSheets.pathArrow, step.arrowSprite * 25, row * 25, 24, 24, (step.mapX - 1) * 16 * zoom, (step.mapY - 1) * 16 * zoom, 24 * zoom, 24 * zoom);
+        })
     }
 
     setNewPathMap(unitId) {

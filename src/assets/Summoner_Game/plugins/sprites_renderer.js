@@ -6,6 +6,9 @@ class Sprites_renderer {
 
         this.zoom = game.zoom;
 
+        this.duration = [1000, 400, 500, 900];
+        this.start = null;
+
         this.units_manager = game.units_manager;
 
         this.spritesSheets = {
@@ -68,6 +71,9 @@ class Sprites_renderer {
     }*/
 
     renderUnit(unit) {
+
+        if (this.start == null) this.start = Date.now();
+
         let color = this.game.teams_manager.getTeamColorCode(unit.team);
         let sprite = this.spritesSheets[unit.codeName + "_map_" + color];
         if (!sprite || sprite == "loading") return;
@@ -75,7 +81,19 @@ class Sprites_renderer {
         let xOrigin = (unit.posX - 1) * 16 * this.zoom - 4 * this.zoom;
         let yOrigin = (unit.posY - 1) * 16 * this.zoom - 8 * this.zoom;
 
-        this.ctx.drawImage(sprite, 0, 0, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
+
+
+
+        let timer = Math.floor(((Date.now() - this.start) % this.duration[0]));
+        let phase = 0;
+
+        if (timer < this.duration[1]) phase = 0;
+        if ((timer >= this.duration[1] && timer < this.duration[2]) || (timer >= this.duration[3] && timer < this.duration[0])) phase = 1;
+        if (timer >= this.duration[2] && timer < this.duration[3]) phase = 2;
+
+        let spriteX = phase * 24;
+
+        this.ctx.drawImage(sprite, spriteX, 0, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
 
         let mask = this.spritesSheets[unit.codeName + "_map_mask"];
         
@@ -83,14 +101,14 @@ class Sprites_renderer {
 
             if (!this.game.turns_manager.isReady(unit.id)) {
                 this.ctx.globalAlpha = 0.8;
-                this.ctx.drawImage(mask, 0, 24, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
+                this.ctx.drawImage(mask, spriteX, 24, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
 
                 this.ctx.globalAlpha = 1;
                 return
             }
 
             this.ctx.globalAlpha = 0.4;
-            this.ctx.drawImage(mask, 0, 24, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
+            this.ctx.drawImage(mask, spriteX, 24, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
 
             this.ctx.globalAlpha = 1;
             return
@@ -98,7 +116,7 @@ class Sprites_renderer {
 
         if (!this.game.turns_manager.isReady(unit.id)) {
             this.ctx.globalAlpha = 0.4;
-            this.ctx.drawImage(mask, 0, 0, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
+            this.ctx.drawImage(mask, spriteX , 0, 24, 24, xOrigin, yOrigin, 24 * this.zoom, 24 * this.zoom);
 
             this.ctx.globalAlpha = 1;
         }
