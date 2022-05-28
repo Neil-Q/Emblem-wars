@@ -117,20 +117,19 @@ class Fight_stats_panel {
     }
 
     async buildSpriteSheets() {
-        let self = this;
         console.time("trans + color");
 
         // Add transparency
-        self.spriteSheet = await self.game.colorizer.toTransparent(self.spriteSheet);
+        this.spriteSheet = await this.game.colorizer.toTransparent(this.spriteSheet);
 
         // Colorize panels by teams
-        let numberOfTeams = self.game.teams_manager.getNumberOfTeams();
-        for(let i = 0; i < numberOfTeams; i++) {
-            let colorCode = self.game.teams_manager.getTeamColorCode(i + 1);
-            let teamsParts = self.spriteParts.teamsParts;
+        let numberOfTeams = this.game.teams_manager.getNumberOfTeams();
+        for(let i = 1; i <= numberOfTeams; i++) {
+            let colorCode = this.game.teams_manager.getTeamColorCode(i);
+            let teamsParts = this.spriteParts.teamsParts;
 
-            let teamPanel = await self.game.colorizer.colorize(self.spriteSheet, colorCode, teamsParts.x, teamsParts.y, teamsParts.width, teamsParts.height);
-            self.teamsParts.push(teamPanel);
+            let teamPanel = await this.game.colorizer.colorize(this.spriteSheet, colorCode, teamsParts.x, teamsParts.y, teamsParts.width, teamsParts.height);
+            this.teamsParts.push(teamPanel);
         }
         console.timeEnd("trans + color");
 
