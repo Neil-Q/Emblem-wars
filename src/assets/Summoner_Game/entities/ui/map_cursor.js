@@ -24,8 +24,6 @@ class Map_cursor {
     }
 
     async buildCursors() {
-        console.log("come up here");
-
         this.spriteSheet = await this.game.colorizer.toTransparent(this.spriteSheet);
 
         for (let i = 1; i <= this.game.teams_manager.getNumberOfTeams(); i++) {

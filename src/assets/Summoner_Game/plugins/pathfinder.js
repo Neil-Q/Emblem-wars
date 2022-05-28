@@ -4,9 +4,15 @@ class Pathfinder {
         this.map = map;
 
         this.spriteSheets = {
-            pathArrow : new Image
+            pathArrow : {
+                base : new Image,
+                colorizedArrows : []
+            }
         }
-        this.spriteSheets.pathArrow.src = require("../entities/ui/sprites/pathfinder_arrow.png");
+
+        this.spriteSheets.pathArrow.base.onload = () => this.colorizePathArrows();
+        this.spriteSheets.pathArrow.base.src = require("../entities/ui/sprites/pathfinder_arrow.png");
+        
 
         this.currentPathMap = {
             moveableTiles : [],       // [x, y, canStopHere(0/1), costSoFar, costBack]
@@ -275,6 +281,26 @@ class Pathfinder {
         }
     }
 
+    async colorizePathArrows() {
+        let pathArrow = this.spriteSheets.pathArrow;
+        let base = pathArrow.base;
+        let choosedRow = 5;
+        let startY = (choosedRow - 1) * 25;
+        let height = 16;
+        
+        // Add transparency
+        base = await this.game.colorizer.toTransparent(base);
+
+        // Colorize arrows by teams
+        let numberOfTeams = this.game.teams_manager.getNumberOfTeams();
+        for(let i = 1; i <= numberOfTeams; i++) {
+            let colorCode = this.game.teams_manager.getTeamColorCode(i);
+
+            let colorizedArrow = await this.game.colorizer.colorize(base, colorCode, 0, startY, base.width, height);
+            pathArrow.colorizedArrows.push(colorizedArrow);
+        }
+    }
+
     getAttackableTiles() {
         return JSON.parse(JSON.stringify(this.currentPathMap.attackableTiles));
     }
@@ -344,24 +370,10 @@ class Pathfinder {
 
     renderPath(ctx, zoom) {
         if (this.path.steps.length == 0) return
+        let team = this.game.units_manager.getSelectedUnitDatas().team;
  
-        let colorCode = this.game.teams_manager.getTeamColorCode(this.game.units_manager.getSelectedUnitDatas().team);
-        let innerRow = 3;
-        let row = 0;
-
-        switch (colorCode) {
-            case "blue" :
-                row = 0 + innerRow;
-                break;
-            case "red" :
-                row = 5 + innerRow;
-                break;
-            case "green" :
-                row = 10 + innerRow;
-        }
-
         this.path.steps.forEach( step => {
-            ctx.drawImage(this.spriteSheets.pathArrow, step.arrowSprite * 25, row * 25, 24, 24, (step.mapX - 1) * 16 * zoom, (step.mapY - 1) * 16 * zoom, 24 * zoom, 24 * zoom);
+            ctx.drawImage(this.spriteSheets.pathArrow.colorizedArrows[team - 1], step.arrowSprite * 25, 0, 24, 24, (step.mapX - 1) * 16 * zoom, (step.mapY - 1) * 16 * zoom, 24 * zoom, 24 * zoom);
         })
     }
 
