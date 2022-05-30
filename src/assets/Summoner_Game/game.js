@@ -26,7 +26,7 @@ class Game {
         this.states = [
             new Game_state_map(this),                   // 0  
             new Game_state_unitSelected(this),          // 1     
-            new Game_state_unitMoving(this),            // 2
+            new Game_state_unitChooseAction(this),            // 2
             new Game_state_UnitReadyToAttack(this),     // 3
         ]
         this.currentState = this.states[0];
@@ -138,7 +138,7 @@ class Game {
                 break;
             }
 
-            case "Unit_Moving" : {
+            case "Unit_Choose_Action" : {
                 this.currentState = this.states[2];
                 break;
             }
@@ -176,8 +176,8 @@ class Game_state_map {
 
     fire(event) {
         switch (event) {
-            case "a_down" :
-            case "mousedown" :                
+            case "a" :
+            case "mouseDown" :                
                 this.mouseDown();
                 break;
 
@@ -205,6 +205,7 @@ class Game_state_map {
     }
 }
 
+// L'unité est selectionnée donc on montre ou elle peut se deplacer
 class Game_state_unitSelected {
     constructor(game) {
         this.game = game;
@@ -216,18 +217,19 @@ class Game_state_unitSelected {
         let mapX = this.game.pointer.mapX;
         let mapY = this.game.pointer.mapY;
 
-        // Si on clic sur une case sur laquelle l'unité peut bouger alors on l'y déplace
-        if (this.game.map.pathfinder.checkIfCanMoveHere(mapX, mapY)) {
+        // Si on clic sur la case ou l'unité se trouve déjà ou une sur laquelle elle peut bouger alors on l'y déplace
+        if (mapX == this.selectedUnitDatas.posX && mapY == this.selectedUnitDatas.posY || this.game.map.pathfinder.checkIfCanMoveHere(mapX, mapY)) {
             let datas = {
                 selectedUnitDatas : this.selectedUnitDatas,
                 targetMapX : mapX,
                 targetMapY : mapY
             }
-            this.game.setState("Unit_Moving", datas);
+            this.game.setState("Unit_Choose_Action", datas);
         }
     }
 
     cursorMove() {
+        if (this.selectedUnitCanPlay == false) return
         this.game.map.pathfinder.calculatePath(this.game.pointer.mapX, this.game.pointer.mapY);
     }
 
@@ -239,6 +241,8 @@ class Game_state_unitSelected {
         this.selectedUnitCanPlay = true;
         if (this.selectedUnitDatas.team !== this.game.turns_manager.getTeamTurn()) this.selectedUnitCanPlay = false;
         if (!this.game.turns_manager.isReady(this.selectedUnitDatas.id)) this.selectedUnitCanPlay = false;
+
+        if (this.selectedUnitCanPlay) this.game.map.pathfinder.calculatePath(this.game.pointer.mapX, this.game.pointer.mapY);
     }
 
     goBack() {
@@ -274,8 +278,7 @@ class Game_state_unitSelected {
     }
 
     mouseUp() {
-        if (this.selectedUnitCanPlay == true) return
-        this.goBack();
+        if (this.selectedUnitCanPlay == false) return this.goBack();
     }
 
     quit() {
@@ -284,7 +287,8 @@ class Game_state_unitSelected {
     }
 }
 
-class Game_state_unitMoving {
+// Le joueur ayant choisit ou il veut déplacer son unité, on lui propose les actions possibles depuis cet endroit
+class Game_state_unitChooseAction {
     constructor(game) {
         this.game = game;
 
@@ -316,37 +320,23 @@ class Game_state_unitMoving {
         this.game.map.pathfinder.setNewReachMap(this.targetMapX, this.targetMapY);
         this.game.renderer.showLayer("pathfinder");
         
-        this.game.ui_manager.lockMapCursorPosition();
 
-        // On verifie cherche les unités à porté
-        let haveEnemyInReach = false;
-        //let haveAllyInReach = false;
+        this.game.ui_manager.lockMapCursorPosition(this.targetMapX, this.targetMapY);
 
-        this.enemiesAtRange = [];
-        this.alliesAtRange = [];
+        let possibleActions = this.listPossibleActions();
 
-        let tilesInReach = this.game.map.pathfinder.getAttackableTiles();
-        let hero = this.selectedUnitDatas;
-        let game = this.game;
-
-        tilesInReach.forEach( tile => {
-            let unit = game.units_manager.findUnitFromPosition(tile[0], tile[1]);
-            if (!unit) return;
-
-            unit = game.units_manager.getUnitDatas(unit);
-
-            if (unit.team == hero.team) {
-                //haveAllyInReach = true;
-                this.alliesAtRange.push(unit);
-                
-                return;
-            }
-            
-            haveEnemyInReach = true;
-            this.enemiesAtRange.push(unit);
+        // On vérifie qu'une action est possible, sinon on retourne en arrière
+        let havePossibleAction = false;
+        Object.entries(possibleActions).forEach( action => {
+            if(action[1] == true) havePossibleAction = true;
         })
+        if(!havePossibleAction) return this.goBack();
 
-        this.game.ui_manager.openMapActionChoiceMenu(this.targetMapX, this.targetMapY, haveEnemyInReach);
+        let menuDatas = possibleActions;
+        menuDatas.mapX = this.targetMapX;
+        menuDatas.mapY = this.targetMapY;
+
+        this.game.ui_manager.open("map_action_choice_menu", menuDatas);
     }
 
     fire(event) {
@@ -370,11 +360,46 @@ class Game_state_unitMoving {
         this.game.map.pathfinder.clearPath();
         this.game.setState("Unit_Selected");
     }
+
+    listPossibleActions() {
+        let possibleActions = {
+            attack : false,
+            wait : false
+        }
+
+        this.enemiesAtRange = [];
+        this.alliesAtRange = [];
+
+        let tilesInReach = this.game.map.pathfinder.getAttackableTiles();
+        let hero = this.selectedUnitDatas;
+        let game = this.game;
+
+        tilesInReach.forEach( tile => {
+            let unit = game.units_manager.findUnitFromPosition(tile[0], tile[1]);
+            if (!unit) return;
+
+            unit = game.units_manager.getUnitDatas(unit);
+
+            if (unit.team == hero.team) return this.alliesAtRange.push(unit);
+            
+           possibleActions.attack = true;
+            this.enemiesAtRange.push(unit);
+        })
+
+        if (this.targetMapX != this.selectedUnitDatas.posX || this.targetMapY != this.selectedUnitDatas.posY) possibleActions.wait = true;
+
+        return possibleActions;
+    }
     
     quit() {
         
         this.game.map.pathfinder.resetPathMap();
         this.game.renderer.hideLayer("pathfinder");       
+
+        // Remet le pointer sur l'emplacement du curseurs pour ceux jouants au clavier mais dont le pointeur aurait pu bouger à cause de la sourie
+        let cursorPosition = this.game.ui_manager.map_cursor.getPosition();
+        this.game.pointer.moveCursor(cursorPosition.mapX, cursorPosition.mapY);
+
         this.game.ui_manager.unlockMapCursorPosition();
         this.game.ui_manager.closeMapActionChoiceMenu();
     }
@@ -387,6 +412,7 @@ class Game_state_unitMoving {
     }
 }
 
+// Si le joueur à choisit d'attaquer un ennemi, on lui laisse choisir lequel et on lui montre les statistiques de combat en cas d'attaque
 class Game_state_UnitReadyToAttack {
     constructor(game) {
         this.game = game;
@@ -397,25 +423,16 @@ class Game_state_UnitReadyToAttack {
         this.selectedUnitDatas = undefined;
         this.attackableUnits = [];
 
-        this.currentTarget = undefined;
+        this.currentTarget = this.attackableUnits[0];
     }
 
     cursorMove() {
         let targetedUnit = this.attackableUnits.find( unit => unit.posX == this.game.pointer.mapX && unit.posY == this.game.pointer.mapY);
+        if (!targetedUnit) return
 
-        if (!targetedUnit) {
-            this.game.ui_manager.close("fight_stats_panel");
-            this.game.ui_manager.items.map_cursor.changeType(0);
-            return
-        }
-        
-        this.game.ui_manager.items.map_cursor.changeType(1);
-        let self = this;
-        let datas = {
-            attacker : self.selectedUnitDatas,
-            defender : targetedUnit
-        }
-        this.game.ui_manager.open("fight_stats_panel", datas);
+        this.currentTarget = targetedUnit;
+        this.moveMapCursor();
+        this.openStatsPanel();
     }
 
     enter(datas) {
@@ -423,13 +440,30 @@ class Game_state_UnitReadyToAttack {
         this.mapY = datas.mapY;
 
         this.selectedUnitDatas = this.game.units_manager.getSelectedUnitDatas();
-
         this.attackableUnits = datas.enemiesAtRange;
-        console.log(this.attackableUnits);
+        this.currentTarget = this.attackableUnits[0];
+
+        this.game.ui_manager.map_cursor.changeType(1);
+        
+        this.moveMapCursor();
+        this.openStatsPanel();
     }
 
     fire(event) {
         switch (event) {
+
+            case "arrowDown" :
+                this.getNextTarget("down");
+                break;
+            case "arrowLeft" :
+                this.getNextTarget("left");
+                break;
+            case "arrowRight" :
+                this.getNextTarget("right");
+                break;
+            case "arrowUp" :
+                this.getNextTarget("up");
+                break;
             
             case "cursorMove" :
                 this.cursorMove()
@@ -446,12 +480,74 @@ class Game_state_UnitReadyToAttack {
         }
     }
 
+    getClosestUnit(originUnit, otherUnits) {
+        let self = this;
+        let distances = [];
+        otherUnits.forEach( unit => {
+            let distance = Math.sqrt(Math.pow((unit.posX - originUnit.posX), 2) + Math.pow((unit.posY - self.currentTarget.posY), 2));
+            distances.push([distance, unit.id]);
+        });
+
+        distances.sort( (a, b) => { return a[0] - b[0] });
+
+        return this.attackableUnits.find( unit => unit.id == distances[0][1]);
+    }
+
+    getNextTarget(direction) {
+        
+        let targetsInDirection = [];
+
+        switch (direction) {
+            case "down" :
+                targetsInDirection = this.attackableUnits.filter( unit => unit.posY > this.currentTarget.posY);
+                break;
+            case "left" :
+                targetsInDirection = this.attackableUnits.filter( unit => unit.posX < this.currentTarget.posX);
+                break;
+            case "right" :
+                targetsInDirection = this.attackableUnits.filter( unit => unit.posX > this.currentTarget.posX);
+                break;
+            case "up" :
+                targetsInDirection = this.attackableUnits.filter( unit => unit.posY < this.currentTarget.posY);
+                break;
+        }
+
+        if (targetsInDirection.length == 0 ) return;
+
+        targetsInDirection.length == 1 ?
+              this.currentTarget = targetsInDirection[0]
+            : this.currentTarget = this.getClosestUnit(this.currentTarget, targetsInDirection);
+       
+        this.moveMapCursor();
+        this.openStatsPanel();
+    }
+
     goBack() {
-        this.game.setState("Unit_Moving");
+        this.game.setState("Unit_Choose_Action");
+    }
+
+    moveMapCursor() {
+        this.game.ui_manager.lockMapCursorPosition(this.currentTarget.posX, this.currentTarget.posY);
+    }
+
+    openStatsPanel() {
+        let self = this;
+        let units = {
+            attacker : self.selectedUnitDatas,
+            defender : self.currentTarget
+        }
+        this.game.ui_manager.open("fight_stats_panel", units);
     }
 
     quit() {
+        this.game.ui_manager.map_cursor.changeType(0);
 
+        // Remet le pointer sur l'emplacement du curseurs pour ceux jouants au clavier mais dont le pointeur aurait pu bouger à cause de la sourie
+        let cursorPosition = this.game.ui_manager.map_cursor.getPosition();
+        this.game.pointer.moveCursor(cursorPosition.mapX, cursorPosition.mapY);
+
+        this.game.ui_manager.unlockMapCursorPosition();
+        this.game.ui_manager.close("fight_stats_panel");
     }
 
 }

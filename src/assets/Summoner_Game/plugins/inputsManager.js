@@ -10,6 +10,7 @@ class Inputs_manager {
 
         canvas.addEventListener("mousemove", event => {
             this.game.pointer.update(event);
+            this.game.fire("mouseMove");
         });
 
         canvas.addEventListener("click", event => {
@@ -20,8 +21,8 @@ class Inputs_manager {
             this.game.fire("click", datas);
         });
 
-        canvas.addEventListener("mousedown", () => {
-            this.game.fire("mousedown");
+        canvas.addEventListener("mousedown", (event) => {
+            if (event.buttons == 1) this.game.fire("mouseDown");
         });
 
         canvas.addEventListener("mouseup", () => {
@@ -44,7 +45,6 @@ class Inputs_manager {
 
                 case "a" :
                     this.game.fire("a");
-                    this.game.fire("a_down");
                     this.preventMultiplication.push(key.key);
                     break;
 

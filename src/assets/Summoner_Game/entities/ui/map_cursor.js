@@ -39,7 +39,16 @@ class Map_cursor {
         this.form = type;
     }
 
-    lockPosition() {
+    getPosition() {
+        let self = this;
+        return {mapX : self.mapX, mapY : self.mapY};
+    }
+
+    lockPosition(mapX = false, mapY = false) {
+        if (mapX && mapY) {
+            this.mapX = mapX;
+            this.mapY = mapY;
+        }
         this.locked = true;
     }
 

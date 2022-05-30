@@ -81,7 +81,6 @@ class Pathfinder {
         let map = this.map;
         let attackerTeam = this.game.units_manager.getUnitDatas(attackerId).team;
         
-        console.log("calculate atk tiles");
         frontiers.outerFrontier.forEach( tile => {
             if (tile[0] <= 0 || tile[1] <= 0 || tile [0] > this.map.gridWidth || tile[1] > this.map.gridHeight) return
             if (!map.checkIfMoveAble(tile[0], tile[1], "foot")) return
@@ -99,8 +98,6 @@ class Pathfinder {
     }
 
     calculateMoveableTiles(unitId) {
-        console.time("Calculating moveables tiles");
-
         let game = this.game;
         let map = this.map;
         let units_manager = game.units_manager;
@@ -192,7 +189,6 @@ class Pathfinder {
             frontier = newFrontier;
         }
 
-        console.timeEnd("Calculating moveables tiles");
         return tilesInReach;
     }
 
@@ -335,7 +331,7 @@ class Pathfinder {
 
             let xOrigin = (tileX - 1) * 16 * zoom + zoom;
             let yOrigin = (tileY - 1) * 16 * zoom + zoom;
-            let size    = 16 * zoom - (zoom * 2);
+            let size    = 17 * zoom - (zoom * 2);
 
             ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
             ctx.fillRect(xOrigin, yOrigin, size, size);
@@ -356,7 +352,7 @@ class Pathfinder {
 
             let xOrigin = (tileX - 1) * 16 * zoom + zoom;
             let yOrigin = (tileY - 1) * 16 * zoom + zoom;
-            let size    = 16 * zoom - (zoom * 2);
+            let size    = 17 * zoom - (zoom * 2);
 
             ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
             ctx.fillRect(xOrigin, yOrigin, size, size);
@@ -378,14 +374,12 @@ class Pathfinder {
     }
 
     setNewPathMap(unitId) {
-        console.time("Total pathfinding time");
 
         let moveableTiles = this.calculateMoveableTiles(unitId);
         this.currentPathMap.moveableTiles = moveableTiles;
         let attackableTiles = this.calculateAttackableTiles(moveableTiles, unitId)
         this.currentPathMap.attackableTiles = attackableTiles;
 
-        console.timeEnd("Total pathfinding time");
     }
 
     setNewReachMap(mapX, mapY) {
@@ -455,8 +449,6 @@ class MapChunk {
     }
 
     calculateFrontierFromOutside(withCheckIfneighbourIsTrue = true, withDiagonals = true) {
-
-        console.time("calculate frontiers");
 
         let outerFrontier = [];
         let innerFrontier = [];
@@ -568,8 +560,6 @@ class MapChunk {
             lookingDirection += 2;
             numberOfRotations = 0;
         }
-
-        console.timeEnd("calculate frontiers");
 
         outerFrontier = outerFrontier.sort().filter(function(item, pos, ary) {
             return !pos || item != ary[pos - 1];

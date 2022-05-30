@@ -12,7 +12,7 @@ class Turns_manager {
         this.lounge = [];
         this.readyUnits = [];
 
-        this.printTurnsInformations = true;
+        this.printTurnsInformations = false;
     }
 
     advanceTime(time) {

@@ -62,10 +62,11 @@ class Map_action_choice_menu {
         this.choices = {
             attack : false,
             harmonize : false,
-            wait : true,
+            wait : false,
         }
 
-        this.currentSelected = "wait";
+        this.buttons = [];
+        this.currentSelected = 0
 
         this.mapX = undefined;
         this.mapY = undefined;
@@ -75,21 +76,17 @@ class Map_action_choice_menu {
 
         this.width = 84;
         this.height = null;
-
-        this.buttons = [];
     }
 
-    build(mapX, mapY, attack = false, harmonize = false) {
+    build(mapX, mapY, attack = false, wait = false) {
         this.reset()
-
-        this.setPossibleChoices(attack, harmonize)
+        this.setPossibleChoices(attack, wait)
         
         let menu = this;
         let parts = this.spriteParts;
         let height = 0;
         
         height += parts.topBorder.height;
-        height += parts.bottomBorder.height;
         Object.keys(menu.choices).forEach(choice => {
             if (menu.choices[choice] == false) return
             height += parts.bodySection.height;
@@ -101,15 +98,17 @@ class Map_action_choice_menu {
             
             menu.buttons.push(button);
         })
+        height += parts.bottomBorder.height;
         
         this.height = height;
         this.setOrigin(mapX, mapY);
+        this.currentSelected = 0;
     }
 
-    clicked(datas = null) {
-        let button = this.getButton(datas.x, datas.y);
+    clicked() {
+        let button = this.getButtonFromPosition(this.game.pointer.mouseX, this.game.pointer.mouseY);
 
-        if (button) this.game.fire(button);
+        if (button != undefined) this.game.fire(this.buttons[this.currentSelected].name);
 
         return true;
     }
@@ -118,37 +117,56 @@ class Map_action_choice_menu {
         let response = false;
 
         switch (event) {
-            case "click" : {
+            case "a" :
+            case "enter" :
+                this.game.fire(this.buttons[this.currentSelected].name);
+                response = true;
+                break;
+
+            case "arrowDown" :
+                this.updateSelectedButton("down");
+                response = true;
+                break;
+
+            case "arrowUp" :
+                this.updateSelectedButton("up");
+                response = true;
+                break;
+
+            case "click" : 
                 response = this.clicked(datas);
-            }
+                break;
+
+            case "mouseMove" :
+                this.updateSelectedButton();
+                break;
         }
 
         return response;
     }
 
-    getButton(globalX, globalY) {
+    getButtonFromPosition(globalX, globalY) {
         let zoom = this.game.zoom;
         let relativeX = globalX - (this.xOrigin + 4);
         let relativeY = globalY - (this.yOrigin + 4);
 
-        let buttonClicked = false;
+        let buttonIndex = undefined;
 
-        if (relativeX < (4 * zoom) || relativeX > (this.width - 4) * zoom) return false;
+        // Verify if in the right x range
+        if (relativeX < (4 * zoom) || relativeX > (this.width - 4) * zoom) return;
 
-        this.buttons.forEach(button => {
-            if (relativeY < (button.yOrigin * zoom) || relativeY > (button.yOrigin + 13) * zoom) return false;
+        // Then the right Y range for each button
+        this.buttons.forEach((button, index) => {
+            if (relativeY < (button.yOrigin * zoom) || relativeY > (button.yOrigin + 13) * zoom) return;
 
-            buttonClicked = button.name;
+            buttonIndex = index;
         });
 
-        return buttonClicked;
+        return buttonIndex;
     }
 
     render(ctx, zoom) {
-        let menu = this;
         let parts = this.spriteParts;
-
-        this.updateSelection();
 
         let xOrigin = this.xOrigin
         let yOrigin = this.yOrigin
@@ -160,16 +178,17 @@ class Map_action_choice_menu {
         ybuilder += (parts.topBorder.height * zoom);
 
         // render choices
-        Object.keys(menu.choices).forEach(choice => {
-            if (menu.choices[choice] == false) return 
+        this.buttons.forEach( (button, index) => {
+            // render background
             ctx.drawImage(this.spriteSheet, 0, parts.bodySection.yOrigin, this.width, parts.bodySection.height, xOrigin, ybuilder, this.width * zoom, parts.bodySection.height * zoom);
 
-            if (menu.currentSelected == choice) {
-                ctx.drawImage(this.spriteSheet, 0, parts[choice + "Selected"].yOrigin, this.width, 19, xOrigin, ybuilder, this.width * zoom, 19 * zoom);
+            // Render either selected or selected sprite version
+            if (index == this.currentSelected) {
+                ctx.drawImage(this.spriteSheet, 0, parts[button.name + "Selected"].yOrigin, this.width, 19, xOrigin, ybuilder, this.width * zoom, 19 * zoom);
                 ctx.drawImage(this.spriteSheet, 0, parts.arrow.yOrigin, this.width, 19, xOrigin, ybuilder, this.width * zoom, 19 * zoom);
             }
             else {
-                ctx.drawImage(this.spriteSheet, 0, parts[choice].yOrigin, this.width, 19, xOrigin, ybuilder, this.width * zoom, 19 * zoom);
+                ctx.drawImage(this.spriteSheet, 0, parts[button.name].yOrigin, this.width, 19, xOrigin, ybuilder, this.width * zoom, 19 * zoom);
             }
 
             ybuilder += (parts.bodySection.height * zoom)
@@ -194,9 +213,10 @@ class Map_action_choice_menu {
         this.buttons = [];
     }
 
-    setPossibleChoices(attack, harmonize) {
+    setPossibleChoices(attack, wait) {
         this.choices.attack = attack;
-        this.choices.harmonize = harmonize;
+        this.choices.wait = wait;
+        //this.choices.harmonize = harmonize;
     }
 
     setOrigin(mapX, mapY) {
@@ -213,9 +233,12 @@ class Map_action_choice_menu {
         this.yOrigin = yOrigin;
     }
 
-    updateSelection() {
-        let targetedButton = this.getButton(this.game.pointer.mouseX, this.game.pointer.mouseY);
-        if (targetedButton) this.currentSelected = targetedButton;
+    updateSelectedButton(direction = null) {
+        if (direction == "up" && this.currentSelected > 0) return this.currentSelected -= 1;
+        if (direction == "down" && this.currentSelected < this.buttons.length - 1) return this.currentSelected += 1;
+
+        let targetedButton = this.getButtonFromPosition(this.game.pointer.mouseX, this.game.pointer.mouseY);
+        if (targetedButton !== undefined) this.currentSelected = targetedButton;
     }
 }
 
