@@ -159,7 +159,7 @@ class Fight_stats_panel {
         }
     }
 
-    drawParts(ctx, attackerStats, defenderStats) {
+    drawParts(ctx, attackerStats, defenderStats, fightStats) {
         ctx.fillStyle = this.game.renderer.colorPalette.menu_text_light.rgb;
         ctx.textBaseline = "alphabetic";
 
@@ -188,31 +188,34 @@ class Fight_stats_panel {
         let startY = 48;
         let step = 14;
 
-        let width = ctx.measureText(defenderStats.currentHP).width;
-        ctx.fillText(defenderStats.currentHP, Math.ceil(defenderMiddleLine - (width/2)), startY);
-        width = ctx.measureText(attackerStats.currentHP).width;
-        ctx.fillText(attackerStats.currentHP, Math.ceil(attackerMiddleLine - (width/2)), startY);
+        // Changing "0" to "--"
+        Object.entries(fightStats).forEach( unitStats => {
+            Object.entries(unitStats[1]).forEach( stat => { 
+                if(stat[1] == 0) {
+                    fightStats[unitStats[0]][stat[0]] = "--";
+                }
+            } );
+        })
 
-        // need fight_manager
-
-        width = ctx.measureText("--").width;
-        let blank = "--";
+        // HP
+        ctx.fillText(attackerStats.currentHP, Math.ceil(attackerMiddleLine - (ctx.measureText(attackerStats.currentHP).width/2)), startY);        
+        ctx.fillText(defenderStats.currentHP, Math.ceil(defenderMiddleLine - (ctx.measureText(defenderStats.currentHP).width/2)), startY);
 
         // Damages
-        ctx.fillText(blank, Math.ceil(defenderMiddleLine - (width/2)), startY + step);
-        ctx.fillText(blank, Math.ceil(attackerMiddleLine - (width/2)), startY + step);
+        ctx.fillText(fightStats.attackerStats.damages, Math.ceil(attackerMiddleLine - (ctx.measureText(fightStats.attackerStats.damages).width/2)), startY + step);
+        ctx.fillText(fightStats.defenderStats.damages, Math.ceil(defenderMiddleLine - (ctx.measureText(fightStats.defenderStats.damages).width/2)), startY + step);
 
         // precision
-        ctx.fillText(blank, Math.ceil(defenderMiddleLine - (width/2)), startY + step * 2);
-        ctx.fillText(blank, Math.ceil(attackerMiddleLine - (width/2)), startY + step * 2);
+        ctx.fillText(fightStats.attackerStats.hittingChances, Math.ceil(attackerMiddleLine - (ctx.measureText(fightStats.attackerStats.hittingChances).width/2)), startY + step * 2);
+        ctx.fillText(fightStats.defenderStats.hittingChances, Math.ceil(defenderMiddleLine - (ctx.measureText(fightStats.defenderStats.hittingChances).width/2)), startY + step * 2);
 
         // critics
-        ctx.fillText(blank, Math.ceil(defenderMiddleLine - (width/2)), startY + step * 3);
-        ctx.fillText(blank, Math.ceil(attackerMiddleLine - (width/2)), startY + step * 3);
+        ctx.fillText(fightStats.attackerStats.criticalChances, Math.ceil(attackerMiddleLine - (ctx.measureText(fightStats.attackerStats.criticalChances).width/2)), startY + step * 3);
+        ctx.fillText(fightStats.defenderStats.criticalChances, Math.ceil(defenderMiddleLine - (ctx.measureText(fightStats.defenderStats.criticalChances).width/2)), startY + step * 3);
 
         // bonus atq
-        ctx.fillText(blank, Math.ceil(defenderMiddleLine - (width/2)), startY + step * 4);
-        ctx.fillText(blank, Math.ceil(attackerMiddleLine - (width/2)), startY + step * 4);
+        ctx.fillText(fightStats.attackerStats.bonusAttackChances, Math.ceil(attackerMiddleLine - (ctx.measureText(fightStats.attackerStats.bonusAttackChances).width/2)), startY + step * 4);
+        ctx.fillText(fightStats.defenderStats.bonusAttackChances, Math.ceil(defenderMiddleLine - (ctx.measureText(fightStats.defenderStats.bonusAttackChances).width/2)), startY + step * 4);
 
     }
 
@@ -228,16 +231,18 @@ class Fight_stats_panel {
 
     }
 
-    async build(attackerStats, defenderStats) {
+    async build(attackerStats, defenderStats, attackerWeapon = 0, defenderWeapon = 0) {
         if (this.builded == false) await this.buildSpriteSheets();
+
+        let fightStats =  this.game.fight_manager.calculateFightingProbabilities(attackerStats, defenderStats, attackerWeapon = 0, defenderWeapon = 0);
 
         let ctx = this.compositor.getContext("2d");
         ctx.clearRect(0, 0, this.compositor.width, this.compositor.height);
         ctx.font = "9px summonerPixel";
 
         this.drawFrame(ctx);
-        this.drawParts(ctx, attackerStats, defenderStats);
-        this.drawWeapons(ctx, attackerStats.weapons, defenderStats.weapons);
+        this.drawParts(ctx, attackerStats, defenderStats, fightStats);
+        this.drawWeapons(ctx, attackerStats.weapons[attackerWeapon], defenderStats.weapons[defenderWeapon]);
 
         this.panel.src = this.compositor.toDataURL();
 

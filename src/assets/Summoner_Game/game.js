@@ -1,4 +1,5 @@
 import { Colorizer }        from "./plugins/colorizer.js";
+import { Fight_manager }    from "./plugins/fight_manager.js"
 import { Inputs_manager }   from "./plugins/inputsManager.js";
 import { Map }              from "./plugins/map.js";
 import { Pointer }          from "./plugins/pointer.js";
@@ -22,6 +23,7 @@ class Game {
         this.units_manager = new Units_manager(this);
         this.turns_manager = new Turns_manager(this);
         this.map = undefined;
+        this.fight_manager = new Fight_manager(this);
 
         this.states = [
             new Game_state_map(this),                   // 0  
@@ -98,14 +100,15 @@ class Game {
         }
         this.map.loadMap("map_01");
 
-        this.units_manager.createUnit(1, "guard", 1, 1, 1, 15, 11);
-        this.units_manager.createUnit(1, "guard", 2, 1, 1, 16, 8);
-        this.units_manager.createUnit(1, "warrior", 1, 1, 1, 13, 8);
-        this.units_manager.createUnit(2, "warrior", 2, 1, 1, 22, 10);
-        this.units_manager.createUnit(2, "swordsman", 1, 1, 1, 22, 8);
-        this.units_manager.createUnit(2, "swordsman", 2, 1, 1, 20, 5);
-        this.units_manager.createUnit(3, "soldier", 1, 1, 1, 6, 11);
-        this.units_manager.createUnit(3, "soldier", 2, 1, 1, 7, 6);
+        this.units_manager.createUnit(1, "warrior", 1, 1, 1, 7, 10);
+        this.units_manager.createUnit(1, "guard", 1   , 1, 1, 8, 10);
+        this.units_manager.createUnit(2, "warrior", 1, 1, 1, 6, 9);
+        this.units_manager.createUnit(2, "swordsman", 1, 1, 1, 7, 8);
+        this.units_manager.createUnit(3, "swordsman", 1, 1, 1, 8, 8);
+        this.units_manager.createUnit(3, "guard", 1, 1, 1, 9, 9);
+        this.units_manager.createUnit(1, "soldier", 1, 1, 3, 9, 10);
+        this.units_manager.createUnit(2, "soldier", 1, 1, 2, 6, 8);
+        this.units_manager.createUnit(3, "soldier", 1, 1, 1, 9, 8);
 
         let inputsManager = new Inputs_manager(this);
         inputsManager.listen();
@@ -254,7 +257,7 @@ class Game_state_unitSelected {
     fire(event) {
         switch (event) {
             case "a" :
-            case "click" :                
+            case "mouseDown" :                
                 this.clicked();
                 break;
 
@@ -304,7 +307,9 @@ class Game_state_unitChooseAction {
     attack() {
         let self = this;
         let datas = {
-            enemiesAtRange : self.enemiesAtRange
+            enemiesAtRange : self.enemiesAtRange,
+            mapX : self.targetMapX,
+            mapY : self.targetMapY
         };
         this.game.setState("Unit_Ready_To_Attack", datas);
     }
@@ -426,6 +431,15 @@ class Game_state_UnitReadyToAttack {
         this.currentTarget = this.attackableUnits[0];
     }
 
+    attack() {
+        this.game.fight_manager.calculateFightingProbabilities(this.selectedUnitDatas, this.currentTarget);
+
+        this.game.units_manager.moveUnitTo(this.mapX, this.mapY, this.selectedUnitDatas.id);
+        this.game.turns_manager.returnToWaitingline(this.selectedUnitDatas.id);
+        this.game.map.pathfinder.clearPath();
+        this.game.setState("Map");
+    }
+
     cursorMove() {
         let targetedUnit = this.attackableUnits.find( unit => unit.posX == this.game.pointer.mapX && unit.posY == this.game.pointer.mapY);
         if (!targetedUnit) return
@@ -436,6 +450,7 @@ class Game_state_UnitReadyToAttack {
     }
 
     enter(datas) {
+        console.log(datas);
         this.mapX = datas.mapX;
         this.mapY = datas.mapY;
 
@@ -463,6 +478,11 @@ class Game_state_UnitReadyToAttack {
                 break;
             case "arrowUp" :
                 this.getNextTarget("up");
+                break;
+
+            case "enter" :
+            case "a" :
+                this.attack()
                 break;
             
             case "cursorMove" :

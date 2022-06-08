@@ -19,13 +19,13 @@ class Unit {
         this.maxMP = stats.maxMP;
         this.currentMP = this.maxMP;
 
-        this.baseDamages = stats.baseDamages;
+        this.strength = stats.strength;
         this.power = stats.power;
 
         this.defense = stats.defense;
         this.resistance = stats.resistance;
 
-        this.contactPrecision = stats.contactPrecision;
+        this.precision = stats.precision;
         this.distancePrecision = stats.distancePrecision;
 
         this.criticalChance = stats.criticalChance;
